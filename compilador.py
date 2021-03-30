@@ -1,5 +1,4 @@
 import collections
-import mgol.alg
 
 tokens = {
 	"num"       :"num"          ,
@@ -97,7 +96,11 @@ matriz_de_estados_lexica = {
     ('"',18) : 19 ,
     ('{',-1) : 16 ,
     ('A',16) : 16 ,
-    ('}',16) : 20 ,
+    ('}',16) : 20 
 }
 
-print("oi")
+def ler_arquivo_mgol():
+    f = open("mgol.alg", "r")
+    print(f.read()) 
+
+ler_arquivo_mgol()

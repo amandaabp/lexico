@@ -10,6 +10,8 @@ class Lex:
     qtd_linhas   = 0
 
 class Token:
+    def __str__(self):
+        return "linha=%d,posição=%d,lexema=%s,token=%s,tipo=%s,erro=%s\n" % (self.linha,self.coluna,self.lexema,self.token,self.tipo,self.erro)
     linha   = 1
     coluna  = 0
     lexema  = ""
@@ -65,18 +67,15 @@ matriz_de_estados_lexica = {
     ('S',19) : -1 ,
     ('S',20) : -1 ,
  
-    ('',1 ) : -1 , 
-    ('',2 ) : -1 ,
-    ('',4 ) : -1 ,
-    ('',7 ) : -1 ,
-    ('',19) : -1 ,
+    (';',1 ) : -1 , 
+    (';',2 ) : -1 ,
+    (';',4 ) : -1 ,
+    (';',7 ) : -1 ,
+    (';',19) : -1 ,
+
     ('L',-1) : 1  , 
     ('L',1 ) : 1  , 
     ('_',1 ) : 1  , 
-
-    ('L',-1) : 1  ,
-    ('L',1 ) : 1  ,
-    ('_',1 ) : 1  ,
 
     ('D',-1) : 2  , 
     ('D',1 ) : 1  , 
@@ -256,8 +255,8 @@ def proximo_token(lex):
     _token = matriz_de_estados_finais[lex.estado_atual]
     _lexema = lex.codigo_mgol[ini_lexema:tk.coluna]
 
-    if (not _token):
-        lex.codigo_mgol = lex.codigo_mgol[tk.coluna:len(lex.codigo_mgol)]
+    if (_token):
+        lex.codigo_mgol = lex.codigo_mgol[tk.coluna+1:len(lex.codigo_mgol)]
 
         if (_token == tokens.id_):
             if (not palavra_reservada(_lexema)):

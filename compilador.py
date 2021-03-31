@@ -214,7 +214,9 @@ def proximo_token(lex):
             ini_lexema += 1
             if c == '\n':
                 lex.linha += 1
-                lex.coluna = 1            
+                lex.coluna = 1
+            if c == '\t' or c == ' ':
+                lex.coluna += 1           
         elif estado_novo == 0:
             token = matriz_de_estados_finais.get(estado_atual,None)
             error = matriz_de_estados_finais.get(matriz_de_estados_lexica.get((t,-1),0),None)

@@ -9,7 +9,7 @@ inicio
 	leia B;
 	escreva "Digite A:";
 	leia A;
-	se(B>2)
+	se(B<4)
 		entao
 		se(B<=4)
 			entao

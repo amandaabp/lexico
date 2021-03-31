@@ -157,7 +157,7 @@ def analisador_lexico(lex):
     while(1):
         tok = proximo_token(lex)
         print(tok)
-        if(tok.token == tokens.EndOfFile):
+        if(tok.token == tokens.EndOfFile or tok.erro != ""):
             break
 
 def tokenizar(c,estado_atual):

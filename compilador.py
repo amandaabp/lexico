@@ -1,29 +1,47 @@
 import collections
 
+class Lex:
+    estado = -1 
+    lexema = "" 
+    token  = ""
+    tipo   = ""
+    codigo_mgol = ""
+    qtd_linhas = 0
+
+class Token:
+    linha   = 0
+    coluna  = 0
+    lexema  = ""
+    token   = ""
+    tipo    = ""
+    erro    = ""
+
 tokens = {
-	"num"       :"num"          ,
-	"id"        :"id"           ,
-	"comentario":"comentario"   ,
-	"OPR"       :"OPR"          ,
-	"RCB"       :"RCB"          ,
-	"OPM"       :"OPM"          ,
-	"AB_P"      :"AB_P"         ,
-	"FC_P"      :"FC_P"         ,
-	"PT_V"      :"PT_V"         ,
-	"ERRO"      :"ERRO"         ,
-	"EndOfFile" :"EndOfFile"    ,
-	"inicio"    :"inicio"       ,
-	"varinicio" :"varinicio"    ,
-	"varfim"    :"varfim"       ,
-	"leia"      :"leia"         ,
-	"se"        :"se"           ,
-	"entao"     :"entao"        ,
-	"senao"     :"senao"        ,
-	"fimse"     :"fimse"        ,
-	"fim"       :"fim"          ,
-	"inteiro"   :"inteiro"      ,
-	"lit"       :"lit"          ,
-	"real"      :"real"         ,
+    "num"       :"num"          ,
+    "id"        :"id"           ,
+    "comentario":"comentario"   ,
+    "OPR"       :"OPR"          ,
+    "RCB"       :"RCB"          ,
+    "OPM"       :"OPM"          ,
+    "AB_P"      :"AB_P"         ,
+    "FC_P"      :"FC_P"         ,
+    "PT_V"      :"PT_V"         ,
+    "ERRO"      :"ERRO"         ,
+    "EndOfFile" :"EndOfFile"    ,
+    "inicio"    :"inicio"       ,
+    "varinicio" :"varinicio"    ,
+    "varfim"    :"varfim"       ,
+    "escreva"   :"escreva"      ,
+    "leia"      :"leia"         ,
+    "se"        :"se"           ,
+    "entao"     :"entao"        ,
+    "fimse"     :"fimse"        ,
+    "faca-ate"  :"faca-ate"     ,
+    "fimfaca"   :"fimfaca"      ,
+    "fim"       :"fim"          ,
+    "inteiro"   :"inteiro"      ,
+    "lit"       :"lit"          ,
+    "real"      :"real"         ,
 }
 
 matriz_de_estados_lexica = {
@@ -99,8 +117,14 @@ matriz_de_estados_lexica = {
     ('}',16) : 20 
 }
 
-def ler_arquivo_mgol():
+def ler_arquivo_mgol(lex):
     f = open("mgol.alg", "r")
-    print(f.read()) 
+    lex.qtd_linhas = len(open("mgol.alg").readlines())
+    lex.codigo_mgol = f.read() 
 
-ler_arquivo_mgol()
+def analisador_lexico(lex):    
+    ler_arquivo_mgol(lex)
+    print(lex.codigo_mgol)
+
+lex = Lex()
+analisador_lexico(lex)

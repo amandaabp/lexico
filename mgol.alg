@@ -1,6 +1,6 @@
 inicio
 	varinicio
-		A int; {inferno}
+		A int; {12345678}
 		B int;
 		D int;
 		C double;

@@ -1,6 +1,6 @@
 inicio
 	varinicio
-		A int; {comentario}
+		A int; {inferno}
 		B int;
 		D int;
 		C double;

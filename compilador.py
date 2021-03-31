@@ -10,7 +10,7 @@ class Token:
     def __str__(self):
         return "linha=%d,posição=%d,lexema=%s,token=%s,tipo=%s,erro=%s\n" % (self.linha,self.coluna,self.lexema,self.token,self.tipo,self.erro)
     linha   = 1
-    coluna  = 0
+    coluna  = 1
     lexema  = ""
     token   = ""
     tipo    = ""
@@ -149,7 +149,7 @@ def palavra_reservada(w):
 def ler_arquivo_mgol(lex):
     f = open("mgol.alg", "r")
     lex.qtd_linhas = len(open("mgol.alg").readlines())
-    lex.codigo_mgol = f.read()
+    lex.codigo_mgol = f.read() + '\0'
 
 def analisador_lexico(lex):    
     ler_arquivo_mgol(lex)
@@ -157,6 +157,8 @@ def analisador_lexico(lex):
     while(1):
         tok = proximo_token(lex)
         print(tok)
+        if(tok.token == tokens.EndOfFile):
+            break
 
 def tokenizar(c,estado_atual):
     if (estado_atual == 2 or estado_atual == 4):
@@ -205,14 +207,14 @@ def proximo_token(lex):
                 ini_lexema += 1
                 if c == '\n':
                     lex.linha += 1
-                    tk.coluna = 1
+                    lex.coluna = 1
         elif estado_novo == -1 and estado_atual != -1:
             break
         elif estado_novo == -1 and estado_atual == -1:
             ini_lexema += 1
             if c == '\n':
                 lex.linha += 1
-                tk.coluna = 1            
+                lex.coluna = 1            
         elif estado_novo == 0:
             token = matriz_de_estados_finais.get(estado_atual,None)
             error = matriz_de_estados_finais.get(matriz_de_estados_lexica.get((t,-1),0),None)
@@ -229,6 +231,7 @@ def proximo_token(lex):
                             break
                         else:
                             tk.linha = lex.linha
+                            tk.coluna = lex.coluna
                             tk.lexema = lex.codigo_mgol[ini_lexema:fim_lexema+1]
                             tk.erro = "Falta um valor ou variavel depois desse Abre Parenteses: '" + tk.lexema + "'"
                             return tk
@@ -237,25 +240,29 @@ def proximo_token(lex):
                             break
                         else:
                             tk.linha = lex.linha
+                            tk.coluna = lex.coluna
                             tk.lexema = lex.codigo_mgol[ini_lexema:fim_lexema+1]
                             tk.erro = "Falta um valor ou variavel aqui: '" + tk.lexema + "'"
                             return tk
                 else:
                     tk.linha = lex.linha
+                    tk.coluna = lex.coluna
                     tk.lexema = lex.codigo_mgol[ini_lexema:fim_lexema+1]
                     tk.erro = "Token duplicado: '" + tk.lexema + "'"
                     return tk
             elif (token is not None and error is None):
                 tk.linha = lex.linha
+                tk.coluna = lex.coluna
                 tk.lexema = lex.codigo_mgol[ini_lexema:fim_lexema+1]
                 tk.erro = "Caractere invalido: '" + tk.lexema + "'"
                 return tk
             tk.linha = lex.linha
+            tk.coluna = lex.coluna
             tk.lexema = lex.codigo_mgol[ini_lexema:fim_lexema+1]
             tk.erro = "Caractere invalido: '" + tk.lexema + "'"
             return tk
         else:
-            tk.coluna += 1
+            lex.coluna += 1
         estado_atual = estado_novo
 
     _token = matriz_de_estados_finais[estado_atual]
@@ -280,15 +287,18 @@ def proximo_token(lex):
         print("Linha ",lex.linha," [",_token,"] ",_lexema)
 
         tk.linha   = lex.linha
+        tk.coluna = lex.coluna
         tk.lexema  = _lexema
         tk.token   = _token
         return tk
     else:
         if (estado_atual == 16 or estado_atual == 18):
             tk.linha = lex.linha
+            tk.coluna = lex.coluna
             tk.erro = "Vc esqueceu de fechar alguma coisa aqui: " + _lexema[0:7] + "..."
             return tk
         tk.linha = lex.linha
+        tk.coluna = lex.coluna
         tk.lexema = _lexema
         return tk
 

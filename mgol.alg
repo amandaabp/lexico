@@ -1,6 +1,6 @@
 inicio
 	varinicio
-		A lit;
+		A lit; {comentario}
 		B int;
 		D int;
 		C double;

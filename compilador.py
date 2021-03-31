@@ -1,13 +1,10 @@
 import collections
+import re
 
 class Lex:
-    estado_novo  = -1
-    estado_atual = -1
-    lexema       = "" 
-    token        = ""
-    tipo         = ""
     codigo_mgol  = ""
     qtd_linhas   = 0
+    linha        = 1
 
 class Token:
     def __str__(self):
@@ -50,7 +47,6 @@ tokens = Lista_de_tokens()
 
 matriz_de_estados_lexica = {
     ('S',-1) : -1 ,
-    ('S',1 ) : -1 ,
     ('S',1 ) : -1 ,
     ('S',2 ) : -1 ,
     ('S',4 ) : -1 ,
@@ -119,20 +115,20 @@ matriz_de_estados_lexica = {
 }
 
 matriz_de_estados_finais = {
-    1  : tokens.id_  ,
-    2  : tokens.num  ,
-    4  : tokens.num  ,
-    7  : tokens.num  ,
-    8  : tokens.fim  ,
-    9  : tokens.OPR  ,
-    10 : tokens.OPR  ,
-    11 : tokens.RCB  ,
-    12 : tokens.OPR  ,
-    13 : tokens.AB_P ,
-    14 : tokens.FC_P ,
-    15 : tokens.PT_V ,
-    17 : tokens.OPM  ,
-    19 : tokens.lit  ,
+    1  : tokens.id_       ,
+    2  : tokens.num       ,
+    4  : tokens.num       ,
+    7  : tokens.num       ,
+    8  : tokens.fim       ,
+    9  : tokens.OPR       ,
+    10 : tokens.OPR       ,
+    11 : tokens.RCB       ,
+    12 : tokens.OPR       ,
+    13 : tokens.AB_P      ,
+    14 : tokens.FC_P      ,
+    15 : tokens.PT_V      ,
+    17 : tokens.OPM       ,
+    19 : tokens.lit       ,
     20 : tokens.comentario
 }
 
@@ -153,7 +149,7 @@ def palavra_reservada(w):
 def ler_arquivo_mgol(lex):
     f = open("mgol.alg", "r")
     lex.qtd_linhas = len(open("mgol.alg").readlines())
-    lex.codigo_mgol = f.read() 
+    lex.codigo_mgol = f.read()
 
 def analisador_lexico(lex):    
     ler_arquivo_mgol(lex)
@@ -189,31 +185,34 @@ def tokenizar(c,estado_atual):
 
 def proximo_token(lex):
     tk = Token()
+    estado_atual = -1
+    estado_novo = -1
     ini_lexema = 0
     for c in lex.codigo_mgol:
-        if c == '\0' and lex.estado_atual == -1 and lex.estado_novo == -1:
+        if c == '\0' and estado_atual == -1 and estado_novo == -1:
+            tk.linha  = lex.linha
             tk.lexema = tokens.EndOfFile
             tk.token  = tokens.EndOfFile
             return tk      
-        t = tokenizar(c,lex.estado_atual)
-        lex.estado_novo = matriz_de_estados_lexica[(t,lex.estado_atual)]
-        if lex.estado_novo == -1 and lex.estado_atual == 20:
+        t = tokenizar(c,estado_atual)
+        estado_novo = matriz_de_estados_lexica[(t,estado_atual)]
+        if estado_novo == -1 and estado_atual == 20:
             print("Linha ",tk.linha," [comentario] ",lex.codigo_mgol[ini_lexema:tk.coluna])
             ini_lexema = tk.coluna                
             if c == '\n' or c == '\t' or c == ' ':
                 ini_lexema += 1
                 if c == '\n':
-                    tk.linha += 1
+                    lex.linha += 1
                     tk.coluna = 1
-        elif lex.estado_novo == -1 and lex.estado_atual != -1:
+        elif estado_novo == -1 and estado_atual != -1:
             break
-        elif lex.estado_novo == -1 and lex.estado_atual == -1:
+        elif estado_novo == -1 and estado_atual == -1:
             if c == '\n':
-                tk.linha += 1
+                lex.linha += 1
                 tk.coluna = 1
             ini_lexema += 1
-        elif lex.estado_novo == 0:
-            token = matriz_de_estados_finais[lex.estado_atual]
+        elif estado_novo == 0:
+            token = matriz_de_estados_finais[estado_atual]
             error = matriz_de_estados_finais[matriz_de_estados_lexica[(t,-1)]]
             if token and error:
                 if token != error:
@@ -227,6 +226,7 @@ def proximo_token(lex):
                         if (error == tokens.id_ or error == tokens.num):
                             break
                         else:
+                            tk.linha = lex.linha
                             tk.lexema = lex.codigo_mgol[ini_lexema:tk.coluna]
                             tk.erro = "Falta um valor ou variavel depois desse Abre Parenteses: '" + tk.lexema + "'"
                             return tk
@@ -234,30 +234,33 @@ def proximo_token(lex):
                         if (error == tokens.id_ or error == tokens.num):
                             break
                         else:
+                            tk.linha = lex.linha
                             tk.lexema = lex.codigo_mgol[ini_lexema:tk.coluna]
                             tk.erro = "Falta um valor ou variavel aqui: '" + tk.lexema + "'"
                             return tk
                 else:
+                    tk.linha = lex.linha
                     tk.lexema = lex.codigo_mgol[ini_lexema:tk.coluna]
                     tk.erro = "Token duplicado: '" + tk.lexema + "'"
                     return tk
             elif (token and not error):
+                tk.linha = lex.linha
                 tk.lexema = lex.codigo_mgol[ini_lexema:tk.coluna]
                 tk.erro = "Caractere invalido: '" + tk.lexema + "'"
                 return tk
+            tk.linha = lex.linha
             tk.lexema = lex.codigo_mgol[ini_lexema:tk.coluna]
             tk.eerrorror = "Caractere invalido: '" + tk.lexema + "'"
             return tk
         else:
             tk.coluna += 1
-        lex.estado_atual = lex.estado_novo
+        estado_atual = estado_novo
 
-    _token = matriz_de_estados_finais[lex.estado_atual]
+    _token = matriz_de_estados_finais[estado_atual]
     _lexema = lex.codigo_mgol[ini_lexema:tk.coluna]
 
     if (_token):
         lex.codigo_mgol = lex.codigo_mgol[tk.coluna+1:len(lex.codigo_mgol)]
-
         if (_token == tokens.id_):
             if (not palavra_reservada(_lexema)):
                 tk.tipo = ""
@@ -274,13 +277,16 @@ def proximo_token(lex):
 
         print("Linha ",tk.linha," [",_token,"] ",_lexema)
 
+        tk.linha   = lex.linha
         tk.lexema  = _lexema
         tk.token   = _token
         return tk
     else:
-        if (lex.estado_atual == 16 or lex.estado_atual == 18):
+        if (estado_atual == 16 or estado_atual == 18):
+            tk.linha = lex.linha
             tk.erro = "Vc esqueceu de fechar alguma coisa aqui: " + _lexema[0:7] + "..."
             return tk
+        tk.linha = lex.linha
         tk.lexema = _lexema
         return tk
 

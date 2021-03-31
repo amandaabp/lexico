@@ -39,7 +39,7 @@ class Lista_de_tokens:
     se         = "se"            
     entao      = "entao"         
     fimse      = "fimse"         
-    faca_ate   = "faca-ate"      
+    faca_ate   = "faca_ate"      
     fimfaca    = "fimfaca"       
     fim        = "fim"           
     inteiro    = "inteiro"       

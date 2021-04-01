@@ -278,7 +278,7 @@ def scanner(lex):
         elif estado_novo == 0: # TRATAMENTO DE ERRO
             er = erro(t, tk, estado_atual, estado_novo, ini_lexema, fim_lexema)
             if er == 0:
-              break;
+              break
         else:
             lex.coluna += 1
         estado_atual = estado_novo

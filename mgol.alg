@@ -1,5 +1,5 @@
 inicio
-	varini#cio
+	varinicio
 		A int; {12345678}
 		B int;
 		D int;

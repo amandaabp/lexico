@@ -133,18 +133,18 @@ matriz_de_estados_finais = {
 }
 
 def palavra_reservada(w):
-	return (w == tokens.inicio or
-		w == tokens.varinicio or
-		w == tokens.varfim or
-		w == tokens.leia or
-		w == tokens.escreva or
-		w == tokens.se or
-		w == tokens.entao or
-		w == tokens.fimse or
-		w == tokens.fim or
-		w == tokens.inteiro or
-		w == tokens.lit or
-		w == tokens.real)
+    return (w == tokens.inicio or
+        w == tokens.varinicio or
+        w == tokens.varfim or
+        w == tokens.leia or
+        w == tokens.escreva or
+        w == tokens.se or
+        w == tokens.entao or
+        w == tokens.fimse or
+        w == tokens.fim or
+        w == tokens.inteiro or
+        w == tokens.lit or
+        w == tokens.real)
 
 def ler_arquivo_mgol(lex):
     f = open("mgol.alg", "r")
@@ -278,7 +278,9 @@ def scanner(lex):
         elif estado_novo == 0: # TRATAMENTO DE ERRO
             er = erro(t, tk, estado_atual, estado_novo, ini_lexema, fim_lexema)
             if er == 0:
-              break
+                break
+            else:
+                return er
         else:
             lex.coluna += 1
         estado_atual = estado_novo

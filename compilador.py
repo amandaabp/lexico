@@ -5,6 +5,7 @@ class Lex:
     qtd_linhas   = 0
     linha        = 1
     coluna       = 1
+    ids          = []
 
 class Token:
     def __str__(self):
@@ -15,6 +16,32 @@ class Token:
     token   = ""
     tipo    = "Nulo"
     erro    = ""
+
+class Sintatico:
+    def get(self,t:Token):
+        self.lexema = t.lexema
+        self.token  = t.token
+        self.tipo   = t.tipo
+    def getS(self,s):
+        if(s.token == ""):
+            return
+        if(self.token == "ARG" or self.token == "id" or self.token == "EXP_R"):
+            return
+        self.token = s.token
+        if(s.lexema != ""):
+            self.lexema = s.lexema        
+        if(s.tipo != ""):
+            self.tipo = s.tipo
+    def inicializar(self):
+        estado = -1
+        lexema = ""
+        token = ""
+        tipo = ""
+    estado = -1
+    lexema = ""
+    token = ""
+    tipo = ""
+
 
 class Lista_de_tokens:
     num        = "num"           
@@ -132,6 +159,19 @@ matriz_de_estados_finais = {
     20 : tokens.comentario
 }
 
+matriz_sintatica = {
+    ("P",-1)            : 1   ,
+    (tokens.inicio,-1)  : 102 ,
+    ("V",2)             : 3   ,
+    (tokens.varinicio,2): 104 
+}
+
+matriz_producoes = {
+    1 : ("P","P")                      ,
+    2 : ("P",tokens.inicio + "V A")    ,
+    3 : ("V",tokens.varinicio + " LV") ,
+}
+
 def palavra_reservada(w):
     return (w == tokens.inicio or
         w == tokens.varinicio or
@@ -146,22 +186,85 @@ def palavra_reservada(w):
         w == tokens.lit or
         w == tokens.real)
 
+def proxima_acao(estado):
+    if (estado == 999):
+        return "aceitar"
+        
+    if (estado > 200):
+        estado = (estado - 200)
+        return "reduzir"
+
+    if (estado > 100):
+        estado = (estado - 100)
+        return "empilhar"
+
+    if (estado == 0):
+        return "erro"
+
+    return ""
+
 def ler_arquivo_mgol(lex):
     f = open("mgol.alg", "r")
     lex.qtd_linhas = len(open("mgol.alg").readlines())
     lex.codigo_mgol = f.read() + '\0'
 
-def analisador_lexico(lex): # o analisador léxico é um laço que verifica o código de entrada,
-    ler_arquivo_mgol(lex)   # e armazena cada token, um de cada vez
+def contar_palavras(frase):
+    espaco = True
+    numero_palavras = 0
+    for letra in frase:
+        if letra == '\0':
+            break
+        if letra.isspace():
+            espaco = True
+        elif espaco == True:
+            numero_palavras += 1
+            espaco = False
+    return numero_palavras
+
+def analisador_sintatico(lex):
+    ler_arquivo_mgol(lex)     
     print(lex.codigo_mgol)
     i = 0
     lista_tokens = []
+    sint = Sintatico()
+    pilha = []
+    pilha.append(sint)
+    reducao = ("","")
     while(1):
-        lista_tokens.append(scanner(lex))
-        print(lista_tokens[i])
-        if(lista_tokens[i].token == tokens.EndOfFile or lista_tokens[i].erro != ""):
-            break # se o token encontrado for Fim de Arquivo ou houver erro, 
-                  # o laço de repetição que busca o próximo token vai parar
+        t = scanner(lex)
+        lista_tokens.append(t)
+        estado_aux = matriz_sintatica.get((t.token,pilha[-1].estado),0)
+        acao = proxima_acao(estado_aux)
+        if(acao == "empilhar"):
+            sint.inicializar()
+            estado = estado_aux
+            sint.get(t)
+            pilha.append(sint)
+            sint.inicializar()
+            sint.estado = estado
+            pilha.append(sint)
+            ultimo_lexema = t.lexema
+            t = scanner(lex)
+        elif(acao == "reduzir"):
+            estado = estado_aux
+            reducao = matriz_producoes[estado]
+            for i in range(0,2*(contar_palavras(reducao[1]))):
+                pilha.pop()
+            estado = pilha[-1].estado
+            sint.inicializar()
+            sint.token = reducao[0]
+            pilha.append(sint)
+            estado_aux = matriz_sintatica[(reducao[0],estado)]
+            sint.inicializar()
+            sint.estado = estado_aux
+            pilha.append(sint)
+        elif(acao == "aceitar"):
+            print("\nSUCESSO!\n")
+        else:
+            if(lista_tokens[i].token == tokens.EndOfFile):
+                break # se o token encontrado for Fim de Arquivo, 
+                      # o laço de repetição que busca o próximo token vai parar
+            print("\nERRO!\n")
         i += 1
 
 def tokenizar(c,estado_atual): # essa função generaliza todas as entradas
@@ -206,7 +309,7 @@ def erro(t, tk, estado_atual, estado_novo, ini_lexema, fim_lexema):
                 else:
                     tk.linha = lex.linha
                     tk.coluna = lex.coluna
-                    tk.lexema = lex.codigo_mgol[ini_lexema:fim_lexema+1]
+                    tk.lexema = lex.codigo_mgol[ini_lexema:fim_lexema]
                     tk.erro = "ERRO1 – Falta um valor ou variavel depois desse Abre Parenteses: '" + tk.lexema + "'"
                     return tk
             if (token == tokens.OPR or token == tokens.OPM or token == tokens.RCB):
@@ -215,29 +318,30 @@ def erro(t, tk, estado_atual, estado_novo, ini_lexema, fim_lexema):
                 else:
                     tk.linha = lex.linha
                     tk.coluna = lex.coluna
-                    tk.lexema = lex.codigo_mgol[ini_lexema:fim_lexema+1]
+                    tk.lexema = lex.codigo_mgol[ini_lexema:fim_lexema]
                     tk.erro = "ERRO2 – Falta um valor ou variavel aqui: '" + tk.lexema + "'"
                     return tk
         else:
             tk.linha = lex.linha
             tk.coluna = lex.coluna
-            tk.lexema = lex.codigo_mgol[ini_lexema:fim_lexema+1]
+            tk.lexema = lex.codigo_mgol[ini_lexema:fim_lexema]
             tk.erro = "ERRO3 – Token duplicado: '" + tk.lexema + "'"
             return tk
     elif (token is not None and error is None):
         tk.linha = lex.linha
         tk.coluna = lex.coluna
-        tk.lexema = lex.codigo_mgol[ini_lexema:fim_lexema+1]
+        tk.lexema = lex.codigo_mgol[ini_lexema:fim_lexema]
         tk.erro = "ERRO4 – Caractere invalido: '" + tk.lexema + "'"
         return tk
     tk.linha = lex.linha
     tk.coluna = lex.coluna
-    tk.lexema = lex.codigo_mgol[ini_lexema:fim_lexema+1]
+    tk.lexema = lex.codigo_mgol[ini_lexema:fim_lexema]
     tk.erro = "ERRO5 – Caractere invalido: '" + tk.lexema + "'"
     return tk
 
-def scanner(lex):
-    tk = Token()    
+def scanner(lex): # retorna o próximo token
+    tk = Token()
+    snt = Sintatico()  
     estado_atual = -1 # o estado inicial é -1
     estado_novo = -1
     ini_lexema = 0    # ini_lexema e fim_lexema marcam as posições de início e o fim de cada lexema
@@ -292,6 +396,13 @@ def scanner(lex):
         lex.codigo_mgol = lex.codigo_mgol[fim_lexema:len(lex.codigo_mgol)] # atualizo o código deletando o que já foi lido
         if (_token == tokens.id_):
             if (not palavra_reservada(_lexema)):
+                for s in lex.ids:
+                    if(s.lexema == _lexema):
+                        snt.estado = -2
+                if(snt.estado == -1):
+                    snt.lexema = _lexema
+                    snt.token  = tokens.id_
+                    lex.ids.append(snt)
                 tk.tipo = ""
             else:
                 _token = _lexema               # se o lexema for uma palavra reservada, pode ser que ele seja um tipo, e
@@ -326,4 +437,4 @@ def scanner(lex):
 
 lex = Lex()
 tokens = Lista_de_tokens()
-analisador_lexico(lex)
+analisador_sintatico(lex)

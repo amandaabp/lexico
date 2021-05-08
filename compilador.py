@@ -235,7 +235,7 @@ def analisador_sintatico(lex):
         else:
           estado_aux = df_tabela_sintatica[t.token][int(pilha[-1].estado)]
           acao = estado_aux[0]
-          estado_aux = df_tabela_sintatica[t.token][int(pilha[-1].estado)][1:(len(estado_aux))]
+          estado_aux = estado_aux[1:(len(estado_aux))]
         
         if(acao == "s"):#empilhar
             sint.inicializar()

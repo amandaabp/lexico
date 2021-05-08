@@ -1,4 +1,8 @@
 import collections
+import pandas as pd
+
+df_tabela_sintatica = pd.read_csv('tabela_sintatica.csv', sep=';')
+df_matriz_producoes = pd.read_csv('matriz_producoes.csv', sep=';', encoding='utf-8')
 
 class Lex:
     codigo_mgol  = ""
@@ -52,7 +56,8 @@ class Lista_de_tokens:
     OPM        = "OPM"           
     AB_P       = "AB_P"          
     FC_P       = "FC_P"          
-    PT_V       = "PT_V"          
+    PT_V       = "PT_V"
+    VIR        = "VIR"          
     ERRO       = "ERRO"          
     EndOfFile  = "EndOfFile"     
     inicio     = "inicio"        
@@ -156,8 +161,10 @@ matriz_de_estados_finais = {
     15 : tokens.PT_V      ,
     17 : tokens.OPM       ,
     19 : tokens.lit       ,
-    20 : tokens.comentario
+    20 : tokens.comentario,
+    22 : tokens.VIR
 }
+
 
 matriz_sintatica = {
     ("P",-1)            : 1   ,
@@ -233,9 +240,19 @@ def analisador_sintatico(lex):
     while(1):
         t = scanner(lex)
         lista_tokens.append(t)
-        estado_aux = matriz_sintatica.get((t.token,pilha[-1].estado),0)
-        acao = proxima_acao(estado_aux)
-        if(acao == "empilhar"):
+        
+        if pilha[-1].estado == -1:
+          estado_aux = df_tabela_sintatica[t.token][0]
+          estado_aux = df_tabela_sintatica[t.token][0][1:(len(estado_aux))]
+        else:
+          estado_aux = df_tabela_sintatica[t.token][int(pilha[-1].estado)]
+          estado_aux = df_tabela_sintatica[t.token][int(pilha[-1].estado)][1:(len(estado_aux))]
+        
+        if pilha[-1].estado == -1:
+          acao = df_tabela_sintatica[t.token][0][0]
+        else:
+          acao = df_tabela_sintatica[t.token][int(pilha[-1].estado)][0]
+        if(acao == "s"):#empilhar
             sint.inicializar()
             estado = estado_aux
             sint.get(t)
@@ -245,9 +262,9 @@ def analisador_sintatico(lex):
             pilha.append(sint)
             ultimo_lexema = t.lexema
             t = scanner(lex)
-        elif(acao == "reduzir"):
+        elif(acao == "r"):#reduzir
             estado = estado_aux
-            reducao = matriz_producoes[estado]
+            reducao = df_matriz_producoes['Nonterminal'][estado], df_matriz_producoes['producoes'][estado]
             for i in range(0,2*(contar_palavras(reducao[1]))):
                 pilha.pop()
             estado = pilha[-1].estado
@@ -258,13 +275,13 @@ def analisador_sintatico(lex):
             sint.inicializar()
             sint.estado = estado_aux
             pilha.append(sint)
-        elif(acao == "aceitar"):
+        elif(acao == "acc"):#aceitar
             print("\nSUCESSO!\n")
         else:
             if(lista_tokens[i].token == tokens.EndOfFile):
                 break # se o token encontrado for Fim de Arquivo, 
                       # o laço de repetição que busca o próximo token vai parar
-            print("\nERRO!\n")
+            #print("\nERRO!\n")
         i += 1
 
 def tokenizar(c,estado_atual): # essa função generaliza todas as entradas

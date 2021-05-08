@@ -20,7 +20,7 @@ inicio
 	B<-B+2;
 	B<-B+3;
 	D<-B;
-	C<-50.;
+	C<-50;
 	escreva "\nB=\n";
 	escreva D;
 	escreva "\n";

@@ -1,5 +1,6 @@
 import collections
 import pandas as pd
+import copy
 
 df_tabela_sintatica = pd.read_csv('tabela_sintatica.csv', sep=';')
 df_matriz_producoes = pd.read_csv('matriz_producoes.csv', sep=';', encoding='utf-8')
@@ -37,10 +38,10 @@ class Sintatico:
         if(s.tipo != ""):
             self.tipo = s.tipo
     def inicializar(self):
-        estado = -1
-        lexema = ""
-        token = ""
-        tipo = ""
+        self.estado = -1
+        self.lexema = ""
+        self.token = ""
+        self.tipo = ""
     estado = -1
     lexema = ""
     token = ""
@@ -165,20 +166,6 @@ matriz_de_estados_finais = {
     22 : tokens.VIR
 }
 
-
-matriz_sintatica = {
-    ("P",-1)            : 1   ,
-    (tokens.inicio,-1)  : 102 ,
-    ("V",2)             : 3   ,
-    (tokens.varinicio,2): 104 
-}
-
-matriz_producoes = {
-    1 : ("P","P")                      ,
-    2 : ("P",tokens.inicio + "V A")    ,
-    3 : ("V",tokens.varinicio + " LV") ,
-}
-
 def palavra_reservada(w):
     return (w == tokens.inicio or
         w == tokens.varinicio or
@@ -235,7 +222,7 @@ def analisador_sintatico(lex):
     lista_tokens = []
     sint = Sintatico()
     pilha = []
-    pilha.append(sint)
+    pilha.append(copy.deepcopy(sint))
     reducao = ("","")
     while(1):
         t = scanner(lex)
@@ -243,7 +230,7 @@ def analisador_sintatico(lex):
         
         if pilha[-1].estado == -1:
           estado_aux = df_tabela_sintatica[t.token][0]
-          estado_aux = df_tabela_sintatica[t.token][0][1:(len(estado_aux))]
+          estado_aux = estado_aux[1:(len(estado_aux))]
         else:
           estado_aux = df_tabela_sintatica[t.token][int(pilha[-1].estado)]
           estado_aux = df_tabela_sintatica[t.token][int(pilha[-1].estado)][1:(len(estado_aux))]
@@ -256,25 +243,26 @@ def analisador_sintatico(lex):
             sint.inicializar()
             estado = estado_aux
             sint.get(t)
-            pilha.append(sint)
+            pilha.append(copy.deepcopy(sint))
             sint.inicializar()
             sint.estado = estado
-            pilha.append(sint)
+            pilha.append(copy.deepcopy(sint))
             ultimo_lexema = t.lexema
             t = scanner(lex)
         elif(acao == "r"):#reduzir
             estado = estado_aux
             reducao = df_matriz_producoes['Nonterminal'][estado], df_matriz_producoes['producoes'][estado]
             for i in range(0,2*(contar_palavras(reducao[1]))):
+                print(pilha[-1])
                 pilha.pop()
             estado = pilha[-1].estado
             sint.inicializar()
             sint.token = reducao[0]
-            pilha.append(sint)
-            estado_aux = matriz_sintatica[(reducao[0],estado)]
+            pilha.append(copy.deepcopy(sint))
+            estado_aux = df_tabela_sintatica[(reducao[0],estado)]
             sint.inicializar()
             sint.estado = estado_aux
-            pilha.append(sint)
+            pilha.append(copy.deepcopy(sint))
         elif(acao == "acc"):#aceitar
             print("\nSUCESSO!\n")
         else:
@@ -380,7 +368,7 @@ def scanner(lex): # retorna o próximo token
         # se o par (entrada,estado_atual) não for encontrado, retorno o estado 0, que é o estado de erro
 
         if estado_novo == -1 and estado_atual == 20: # COMENTÁRIO
-            print("Linha ",lex.linha," [comentario] ",lex.codigo_mgol[ini_lexema:fim_lexema],"\n")
+            #print("Linha ",lex.linha," [comentario] ",lex.codigo_mgol[ini_lexema:fim_lexema],"\n")
             ini_lexema = fim_lexema               
             if c == '\n' or c == '\t' or c == ' ':
                 ini_lexema += 1
@@ -432,7 +420,7 @@ def scanner(lex): # retorna o próximo token
                 else:
                     tk.tipo = ""
 
-        print("Linha ",lex.linha," [",_token,"] ",_lexema)
+        #print("Linha ",lex.linha," [",_token,"] ",_lexema)
 
         tk.linha   = lex.linha
         tk.coluna = lex.coluna

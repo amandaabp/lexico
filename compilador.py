@@ -224,8 +224,9 @@ def analisador_sintatico(lex):
     pilha = []
     pilha.append(copy.deepcopy(sint))
     reducao = ("","")
-    while(1):
-        t = scanner(lex)
+    t = scanner(lex)
+    
+    while(1):        
         lista_tokens.append(t)
         
         if pilha[-1].estado == -1:

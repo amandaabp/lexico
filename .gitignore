@@ -5,7 +5,8 @@ __pycache__/
 
 # C extensions
 *.so
-
+matriz_producoes.csv
+tabela_sintatica.csv
 # Distribution / packaging
 .Python
 build/

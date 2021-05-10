@@ -1,7 +1,10 @@
 {
     "files.associations": {
         "*.asm": "asm",
-        "utility": "cpp"
+        "utility": "cpp",
+        "deque": "cpp",
+        "vector": "cpp",
+        "xstring": "cpp"
     },
-    "python.pythonPath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\Python37_64\\python.exe"
+    "python.pythonPath": "C:\\Users\\Amanda\\AppData\\Local\\Programs\\Python\\Python38\\python.exe"
 }

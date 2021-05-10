@@ -66,37 +66,11 @@ class Stack:
 pilha = Stack()  # pilha para auxiliar na analise Sintática
 pilha.push(0)
 
-
-class Sintatico:
-    def get(self,t:Token):
-        self.lexema = t.lexema
-        self.token  = t.token
-        self.tipo   = t.tipo
-    def getS(self,s):
-        if(s.token == ""):
-            return
-        if(self.token == "ARG" or self.token == "id" or self.token == "EXP_R"):
-            return
-        self.token = s.token
-        if(s.lexema != ""):
-            self.lexema = s.lexema        
-        if(s.tipo != ""):
-            self.tipo = s.tipo
-    def inicializar(self):
-        self.estado = -1
-        self.lexema = ""
-        self.token = ""
-        self.tipo = ""
-    estado = -1
-    lexema = ""
-    token = ""
-    tipo = ""
-
-
 class Lista_de_tokens:
     num = "num"
     id_ = "id"
     comentario = "comentario"
+    literal = "literal"
     OPR = "OPR"
     RCB = "RCB"
     OPM = "OPM"
@@ -207,7 +181,7 @@ matriz_de_estados_finais = {
     14: tokens.FC_P,
     15: tokens.PT_V,
     17: tokens.OPM,
-    19: tokens.lit,
+    19: tokens.literal,
     20: tokens.comentario,
     22: tokens.VIR
 }
@@ -232,24 +206,6 @@ def proxima_acao(estado):
     if (estado == 999):
         return "aceitar"
 
-    if (estado > 200):
-        estado = (estado - 200)
-        return "reduzir"
-
-    if (estado > 100):
-        estado = (estado - 100)
-        return "empilhar"
-
-    if (estado == 0):
-        return "erro"
-
-    return ""
-
-
-def proxima_acao(estado):
-    if (estado == 999):
-        return "aceitar"
-        
     if (estado > 200):
         estado = (estado - 200)
         return "reduzir"
@@ -369,7 +325,7 @@ def analisador_sintatico(lex):
             #print('AlGUM ERRO OCORREU !')
             #print('Terminal: ' + a)
             print('ERRO SINATICO ENCONTRADO !!\n')
-            errorSyntactic(stateLine)
+            #errorSyntactic(stateLine)
             return
 
 
@@ -421,7 +377,7 @@ def analisa_sintatico(lex):
             sint.inicializar()
             sint.token = reducao[0]
             pilha.append(sint)
-            estado_aux = matriz_sintatica[(reducao[0], estado)]
+            #estado_aux = matriz_sintatica[(reducao[0], estado)]
             sint.inicializar()
             sint.estado = estado_aux
             pilha.append(sint)

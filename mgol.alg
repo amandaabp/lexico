@@ -1,30 +1,35 @@
 inicio
 	varinicio
-		A int; {12345678}
-		B int;
-		D int;
-		C double;
+		A lit;
+		B inteiro;
+		D inteiro;
+		C real;
 	varfim;
-	escreva "Digite B:";
+
+	escreva "Digite B";
 	leia B;
+
 	escreva "Digite A:";
 	leia A;
-	se(B<4)
-		entao
+
+	se(B>2)
+	entao
 		se(B<=4)
-			entao
+		entao
 			escreva "B esta entre 2 e 4";
 		fimse
 	fimse
-	B<-B+4;
+
+	B<-B+1;
 	B<-B+2;
 	B<-B+3;
 	D<-B;
-	C<-50;
+	C<-5.0;
+
 	escreva "\nB=\n";
 	escreva D;
 	escreva "\n";
-	escreva B;
+	escreva C;
 	escreva "\n";
 	escreva A;
 fim

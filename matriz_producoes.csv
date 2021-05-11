@@ -1,39 +1,39 @@
-﻿Nonterminal;producoes;syzeProduction
-P';P;1
-P;inicio V A;3
-V;varinicio LV;2
-LV;D LV;2
-LV;"varfim ;";2
-D;"L TIPO ;";3
-L;id , L;3
-L;id;1
-TIPO;int;1
-TIPO;real;1
-TIPO;lit;1
-A;ES A;2
-ES;"leia id ;";3
-ES;"escreva ARG ;";3
-ARG;literal;1
-ARG;num;1
-ARG;id;1
-A;CMD A;2
-CMD;"id rcb LD ;";4
-LD;OPRD opm OPRD;3
-LD;OPRD;1
-OPRD;id;1
-OPRD;num;1
-A;COND A;2
-COND;CAB CP;2
-CAB;se ( EXP_R ) entao;5
-EXP_R;OPRD opr OPRD;3
-CP;ES CP;2
-CP;CMD CP;2
-CP;COND CP;2
-CP;fimse;1
-A;R A;2
-R;facaAte ( EXP_R ) CP_R;5
-CP_R;ES CP_R;2
-CP_R;CMD CP_R;2
-CP_R;COND CP_R;2
-CP_R;fimFaca;1
-A;fim;1
+﻿Nonterminal;producoes;tamProd;;;
+P';P;1;;;
+P;inicio V A;3;;;
+V;varinicio LV;2;;;
+LV;D LV;2;;;
+LV;"varfim ;";2;;;
+D;"L TIPO ;";3;;;
+L;id , L;3;;;
+L;id;1;;;
+TIPO;int;1;;;
+TIPO;real;1;;;
+TIPO;lit;1;;;
+A;ES A;2;;;
+ES;"leia id ;";3;;;
+ES;"escreva ARG ;";3;;;
+ARG;literal;1;;;
+ARG;num;1;;;
+ARG;id;1;;;
+A;CMD A;2;;;
+CMD;"id rcb LD ;";4;;;
+LD;OPRD opm OPRD;3;;;
+LD;OPRD;1;;;
+OPRD;id;1;;;
+OPRD;num;1;;;
+A;COND A;2;;;
+COND;CAB CP;2;;;
+CAB;se ( EXP_R ) entao;5;;;
+EXP_R;OPRD opr OPRD;3;;;
+CP;ES CP;2;;;
+CP;CMD CP;2;;;
+CP;COND CP;2;;;
+CP;fimse;1;;;
+A;R A;2;;;
+R;facaAte ( EXP_R ) CP_R;5;;;
+CP_R;ES CP_R;2;;;
+CP_R;CMD CP_R;2;;;
+CP_R;COND CP_R;2;;;
+CP_R;fimFaca;1;;;
+A;fim;1;;;

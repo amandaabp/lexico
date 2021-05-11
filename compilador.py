@@ -1,7 +1,9 @@
 import collections
 import pandas as pd
+import math
 
 df_tabela_sintatica = pd.read_csv('tabela_sintatica.csv', sep=';')
+df_matriz_follow = pd.read_csv('matriz_follow.csv', sep=';')
 df_matriz_producoes = pd.read_csv(
     'matriz_producoes.csv', sep=';', encoding='utf-8')
 
@@ -239,159 +241,158 @@ def contar_palavras(frase):
 
 
 def analisador_sintatico(lex):
-    global flag7
-    global flag2
-    global flag3
-
-    typeToken1 = None
-    sint = Sintatico()
+    erroSint = False  
     ler_arquivo_mgol(lex)
-    i = 0
-    lista_tokens = []
     t = scanner(lex)
-    
+    a = t.token
+    tAntigo = t
+    print('\nAnalisador sintático\n')
     while(1):
-        lista_tokens.append(t)
-        ab = lista_tokens[0]
-        a = t.lexema
+        if a != '':
+            #topo da pilha
+            s = pilha.items[len(pilha.items)-1] 
 
-        s = pilha.items[len(pilha.items)-1]  # Pega o estado do topo da pilha
-        #print(pilha.items) # Imprime os elementos armazenados na pilha
-        #print('\n')
-        estado_aux = df_tabela_sintatica[t.token][s]
-        aux = df_tabela_sintatica[t.token][s][1:(len(estado_aux))]
-        acao = df_tabela_sintatica[t.token][s][0]
-        
-        if acao == 's' or acao == 'r' or acao == 'E':
-            stateLine = int(aux)
-
-        if acao == 's':
-            sint.inicializar()
-            sint.get(t)
-            sint.estado = stateLine
-            pilha.push(t.token)
-            pilha.push(stateLine)
-
-            if t.token == 'id' or t.token == 'literal' or t.token == 'num':
-                if t == 'id':
-                    flag2 = typeToken1
-                if t == 'num':
-                    flag7 = typeToken1
-
-                typeToken1 = t
-
-            t = scanner(lex)
-            if t == 'OPR':
-                flag3 = t
-
-            a = t.lexema
-        elif acao == 'r':
-            aux2 = df_matriz_producoes['Nonterminal'][stateLine]  # Retorna a producao gerada
-            lineProduction = stateLine
-
-            # Desempilha de acordo com a quantidade de producoes
-            for i in range(df_matriz_producoes['syzeProduction'][stateLine]):
-                pilha.pop()
-                pilha.pop()
+            #busca acao na tabela sintatica
+            estado_aux = df_tabela_sintatica[a][s]
+            aux = df_tabela_sintatica[a][s][1:(len(estado_aux))]
+            acao = df_tabela_sintatica[a][s][0]
             
-            # Retorna o estado para posterior desvio
-            stateLine = pilha.items[len(pilha.items)-1]
+            if t.lexema == 'B':
+                print('aaaa')
 
-            sint.inicializar()
+            if acao == 's' or acao == 'r' or acao == 'E':
+                linhaEstado = int(aux)
+
+            #empilhar
+            if acao == 's':                
+                pilha.push(a)
+                pilha.push(linhaEstado)
             
-            pilha.push(aux2)  # Empilha o nao terminal referente a producao
-            # Empilha a linha do estado referente ao desvio
-            sint.token = aux2            
-            teste_estado = df_tabela_sintatica[aux2][stateLine]
-            sint.estado = df_tabela_sintatica[aux2][stateLine][1:(len(teste_estado))]
-            pilha.push(int(df_tabela_sintatica[aux2][stateLine][1:(len(teste_estado))]))
-            # Imprime a producao gerada pela gramatica
-            print('\nPRODUÇÃO GERADA: ' + df_matriz_producoes['Nonterminal'][lineProduction]+'->'+df_matriz_producoes['producoes'][lineProduction]+'\n')
-            print(typeToken1)
+                if erroSint: 
+                    t = tAntigo
+                    erroSint = False
+                else:
+                    t = scanner(lex)
 
-        elif acao == 'acc':
-            #print('\nPRODUÇÃO FINAL: ' + grammar[stateLine]+'\n')
+                a = t.token
 
-            # for i in range(syzeProduction[stateLine-1]):
-            #	pilha.pop()
-            #	pilha.pop()
+            #reduzir
+            elif acao == 'r':
+                #produção gerada
+                aux2 = df_matriz_producoes['Nonterminal'][linhaEstado]
+                linhaProd = linhaEstado
 
-            # print(pilha.items)
-            print('\n/*-----LINGUAGEM COMPILADA COM SUCESSO !!-----*/\n')
-        
-            return
+                #desempilha de acordo com a quantidade de produções
+                for i in range(df_matriz_producoes['tamProd'][linhaEstado]):
+                    pilha.pop()
+                    pilha.pop()
+                
+                linhaEstado = pilha.items[len(pilha.items)-1]
+                
+                pilha.push(aux2)          
+                aux_estado = df_tabela_sintatica[aux2][linhaEstado]
+                pilha.push(int(df_tabela_sintatica[aux2][linhaEstado][1:(len(aux_estado))]))
+                print('Regra: ',df_matriz_producoes['Nonterminal'][linhaProd],'->',df_matriz_producoes['producoes'][linhaProd])
+                
+            #aceita
+            elif acao == 'a':
+                print('\n----- ACEITA -----\n')            
+                return
+            #erro
+            elif acao == 'E':
+                faltSib = {}
+                impriLista = ""
 
-        elif acao == 'e':
-            #print('AlGUM ERRO OCORREU !')
-            #print('Terminal: ' + a)
-            print('ERRO SINATICO ENCONTRADO !!\n')
-            #errorSyntactic(stateLine)
-            return
+                linhas = df_tabela_sintatica.values[s]
+                colunas = df_tabela_sintatica.columns
 
+                for k,v in zip(linhas, colunas):
+                    if v !='estado':
+                        if k != '0' and k != 0:
+                            if k[0] != 'E':
+                                faltSib.update({v : k})
+                                nomeToken = eqToken(v)
+                                impriLista = impriLista + " " + str(nomeToken)
+                print("\nErro Sintático.\nLinha: ", t.linha,"Coluna: ",t.coluna, "\n Faltando símbolo(s):",impriLista)
 
+                if len(faltSib) == 1:
+                    print("\tTratamento de erro. Inserindo símbolo ausente...")
+                    chave = [key for key in faltSib.keys()]
 
-def analisa_sintatico(lex):
-    ler_arquivo_mgol(lex)
-    print(lex.codigo_mgol)
-    i = 0
-    lista_tokens = []
-    sint = Sintatico()
-    pilha = []
-    pilha.append(sint)
-    reducao = ("", "")
-    while(1):
-        t = scanner(lex)
-        lista_tokens.append(t)
+                    tAntigo = t
 
-        if pilha[-1].estado == -1:
-            estado_aux = df_tabela_sintatica[t.token][0]
-            estado_aux = df_tabela_sintatica[t.token][0][1:(len(estado_aux))]
-        else:
-            estado_aux = df_tabela_sintatica[t.token][int(pilha[-1].estado)]
-            estado_aux = df_tabela_sintatica[t.token][int(
-                pilha[-1].estado)][1:(len(estado_aux))]
+                    a = chave[0]
 
-        if pilha[-1].estado == -1:
-            acao = df_tabela_sintatica[t.token][0][0]
-        else:
-            acao = df_tabela_sintatica[t.token][int(pilha[-1].estado)][0]
+                    erroSint = True 
 
-        print
-        print(estado_aux)
-        if(acao == "s"):  # empilhar
-            sint.inicializar()
-            estado = estado_aux
-            sint.get(t)
-            pilha.append(sint)
-            sint.inicializar()
-            sint.estado = estado
-            pilha.append(sint)
-            ultimo_lexema = t.lexema
+                    pilha.pop()
+                    pilha.pop()
+                    pilha.push(chave[0])
+                    pilha.push(int(aux))
+
+                    print("\nInserindo para continuar a análise.")
+                    print("\nFim de tratamento de erro\n")
+                else:
+                    print("\nTratamento de erro.")
+                    listaFollow = df_matriz_follow['FOLLOW'][int(s)-1]
+                    aux = 1
+
+                    while (aux):
+                        while True:
+                            t = scanner(lex)
+                            a = t.token
+ 
+                            if a == "$":
+                                print("Fim de tratamento de erro\n")
+                                print("Finalizada. Falha!")
+                                return
+
+                            elif a != "comentario":
+                                break
+
+                        if listaFollow == '0':
+                            print("A análise não conseguiu se recuperar do erro: ")
+                            break
+                        else:
+                            for token in listaFollow.split():
+                                if token == a:
+                                    aux = 0
+                                    break
+                            
+                        x = df_matriz_producoes['tamProd'][int(s)]
+                        if x:
+                            for i in range(0, int(x)):
+                                pilha.pop()
+                                pilha.pop()
+
+                        print("Recuperando análise sintática\n")                                        
+        else:           
+            print('Erro lexico'+ t.erro)
             t = scanner(lex)
-        elif(acao == "r"):  # reduzir
-            estado = estado_aux
-            reducao = df_matriz_producoes['Nonterminal'][estado], df_matriz_producoes['producoes'][estado]
-            for i in range(0, 2*(contar_palavras(reducao[1]))):
-                pilha.pop()
-            estado = pilha[-1].estado
-            sint.inicializar()
-            sint.token = reducao[0]
-            pilha.append(sint)
-            #estado_aux = matriz_sintatica[(reducao[0], estado)]
-            sint.inicializar()
-            sint.estado = estado_aux
-            pilha.append(sint)
-            print('reducao')
-            print(reducao)
-        elif(acao == "acc"):  # aceitar
-            print("\nSUCESSO!\n")
-        else:
-            if(lista_tokens[i].token == tokens.EndOfFile):
-                break  # se o token encontrado for Fim de Arquivo,
-                # o laço de repetição que busca o próximo token vai parar
-            # print("\nERRO!\n")
-        i += 1
+            a = t.token  
 
+def eqToken(token):
+    tokenTrad = token
+    if token == "OPM":
+        return tokenTrad + " - Operador Matemático"
+    if token == "OPR":
+        return tokenTrad + " - Operador Relacional"
+    if token == "id":
+        return tokenTrad + " - identificador"
+    if token == "num":
+        return tokenTrad + " - número" 
+    if token == "RCB":
+        return tokenTrad + " - Atribuição"
+    if token == "AB_P":
+        return tokenTrad + " - Abre Parêntesis - '('"
+    if token == "FC_P":
+        return tokenTrad + " - Fecha Parêntesis - ')'"
+    if token == "PT_V":
+        return tokenTrad + " - Ponto e Vírgula - ;"
+    if token == "VIR":
+        return tokenTrad + " - Vírgula - ,"
+    else:
+        return token
 
 def tokenizar(c, estado_atual):  # essa função generaliza todas as entradas
     if (estado_atual == 2 or estado_atual == 4):
@@ -449,6 +450,7 @@ def erro(t, tk, estado_atual, estado_novo, ini_lexema, fim_lexema):
                     tk.coluna = lex.coluna
                     tk.lexema = lex.codigo_mgol[ini_lexema:fim_lexema]
                     tk.erro = "ERRO2 – Falta um valor ou variavel aqui: '" + tk.lexema + "'"
+                    lex.codigo_mgol = lex.codigo_mgol[1:len(lex.codigo_mgol)]
                     return tk
         else:
             tk.linha = lex.linha

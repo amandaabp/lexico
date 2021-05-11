@@ -20,9 +20,9 @@ inicio
 		fimse
 	fimse
 
-	B<-B+1;
+	B<-B+;
 	B<-B+2;
-	B<-B+3;
+	B<-B+2;
 	D<-B;
 	C<-5.0;
 

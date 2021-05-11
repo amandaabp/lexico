@@ -1,0 +1,77 @@
+﻿estado;Não Terminal;FOLLOW;Qtd Simbolo;estado_n
+0;P';EndOfFile;1;0
+1;;0;;1
+2;P;EndOfFile;1;2
+3;P;EndOfFile;2;3
+4;V;fim leia escreva id facaAte se;1;4
+5;;0;;5
+6;A;EndOfFile;1;6
+7;A;EndOfFile;1;7
+8;A;EndOfFile;1;8
+9;A;EndOfFile;1;9
+10;;;;
+11;ES;fim leia escreva id facaAte se fimse fimFaca;1;11
+12;ES;fim leia escreva id facaAte se fimse fimFaca;1;12
+13;CMD;fim leia escreva id facaAte se fimse fimFaca;1;13
+14;COND;fim leia escreva id facaAte se fimse fimFaca;1;14
+15;R;fim leia escreva id facaAte se;1;15
+16;CAB;leia escreva id fimse se;2;16
+17;;0;;17
+18;LV;fim leia escreva id facaAte se;1;18
+19;LV;fim leia escreva id facaAte se;1;19
+20;D;varfim id;1;20
+21;L;int real lit;1;21
+22;;0;;22
+23;;0;;23
+24;;0;;24
+25;;0;;25
+26;ES;fim leia escreva id facaAte se fimse fimFaca;2;26
+27;ES;fim leia escreva id facaAte se fimse fimFaca;1;27
+28;;0;;28
+29;;0;;29
+30;;0;;30
+31;CMD;fim leia escreva id facaAte se fimse fimFaca;;31
+32;;0;;32
+33;CP;fim leia escreva id facaAte se fimse fimFaca;;33
+34;CP;fim leia escreva id facaAte se fimse fimFaca;;34
+35;CP;fim leia escreva id facaAte se fimse fimFaca;;35
+36;;0;;36
+37;R;fim leia escreva id facaAte se;;37
+38;CAB;leia escreva id fimse se;;38
+39;;0;;39
+40;;0;;40
+41;D;varfim id;;41
+42;;0;;42
+43;;0;;43
+44;;0;;44
+45;L;int real lit;;45
+46;;0;;46
+47;;0;;47
+48;CMD;fim leia escreva id facaAte se fimse fimFaca;;48
+49;LD;PT_V;;49
+50;;0;;50
+51;;0;;51
+52;;0;;52
+53;;0;;53
+54;;0;;54
+55;R;fim leia escreva id facaAte se;;55
+56;EXP_R;AB_P;;56
+57;CAB;leia escreva id fimse se;;57
+58;;0;;58
+59;;0;;59
+60;;0;;60
+61;LD;PT_V;;61
+62;R;fim leia escreva id facaAte se;;62
+63;EXP_R;FC_P;;63
+64;CAB;leia escreva id fimse se;;64
+65;;0;;65
+66;;0;;66
+67;CP_R;fim leia escreva id facaAte se;;67
+68;CP_R;fim leia escreva id facaAte se;;68
+69;CP_R;fim leia escreva id facaAte se;;69
+70;;0;;70
+71;;0;;71
+72;;0;;72
+73;;0;;73
+74;;0;;74
+75;;0;;75

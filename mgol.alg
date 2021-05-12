@@ -20,7 +20,7 @@ inicio
 		fimse
 	fimse
 
-	B<-B+1;
+	B<-B+;
 	B<-B+2;
 	B<-B+2;
 	D<-B;

@@ -289,7 +289,6 @@ def erro(t, tk, estado_atual, estado_novo, ini_lexema, fim_lexema):
                     tk.coluna = lex.coluna
                     tk.lexema = lex.codigo_mgol[ini_lexema:fim_lexema]
                     tk.erro = "ERRO2 – Falta um valor ou variavel aqui: '" + tk.lexema + "'"
-                    lex.codigo_mgol = lex.codigo_mgol[1:len(lex.codigo_mgol)]
                     return tk
         else:
             tk.linha = lex.linha
@@ -320,11 +319,12 @@ def scanner(lex):  # retorna o próximo token
     ini_lexema = 0
     fim_lexema = -1   # para retirar cada lexema da string que armazena o código completo
     for c in lex.codigo_mgol:  # vou iterar caractere por caractere no código, até encontrar o próximo token
-        if c == '\0' and estado_atual == -1 and estado_novo == -1:
+        if c == '\0' and estado_atual == -1 and estado_novo == -1:          
             tk.linha = lex.linha
             tk.lexema = tokens.EndOfFile
             tk.token = tokens.EndOfFile
             return tk
+
         fim_lexema += 1
         t = tokenizar(c, estado_atual)
 
@@ -354,10 +354,11 @@ def scanner(lex):  # retorna o próximo token
             if c == '\t' or c == ' ':
                 lex.coluna += 1
         elif estado_novo == 0:  # TRATAMENTO DE ERRO
-            er = erro(t, tk, estado_atual, estado_novo, ini_lexema, fim_lexema)
+            er = erro(t, tk, estado_atual, estado_novo, ini_lexema, fim_lexema)            
             if er == 0:
                 break
             else:
+                tk.token = matriz_de_estados_finais.get(estado_atual, None)
                 return er
         else:
             lex.coluna += 1
@@ -438,6 +439,11 @@ def eqToken(token):
     else:
         return token
 
+def tratar_erro_lexico(lex,t):
+    lex.codigo_mgol = lex.codigo_mgol[len(t.lexema):len(lex.codigo_mgol)]
+    lex.codigo_mgol = t.lexema + "0" + lex.codigo_mgol
+    t = scanner(lex)
+
 def analisador_sintatico(lex):
     erroSint = False  
     ler_arquivo_mgol(lex)
@@ -468,6 +474,9 @@ def analisador_sintatico(lex):
                     erroSint = False
                 else:
                     t = scanner(lex)
+
+                if t.erro is not '':
+                    tratar_erro_lexico(lex,t)
 
                 a = t.token
 

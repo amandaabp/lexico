@@ -15,7 +15,6 @@ class Lex:
     coluna = 1
     ids = []
 
-
 class Token:
     def __str__(self):
         return "linha=%d,posição=%d,lexema=%s,Classe=%s,tipo=Nulo,erro=%s\n" % (self.linha, self.coluna, self.lexema, self.token, self.erro)
@@ -64,7 +63,6 @@ class Stack:
     def isEmpty(self):
         return (self.items == [])
 
-
 pilha = Stack()  # pilha para auxiliar na analise Sintática
 pilha.push(0)
 
@@ -96,7 +94,6 @@ class Lista_de_tokens:
     inteiro = "inteiro"
     lit = "lit"
     real = "real"
-
 
 tokens = Lista_de_tokens()
 
@@ -188,7 +185,6 @@ matriz_de_estados_finais = {
     22: tokens.VIR
 }
 
-
 def palavra_reservada(w):
     return (w == tokens.inicio or
             w == tokens.varinicio or
@@ -202,7 +198,6 @@ def palavra_reservada(w):
             w == tokens.inteiro or
             w == tokens.lit or
             w == tokens.real)
-
 
 def proxima_acao(estado):
     if (estado == 999):
@@ -238,7 +233,6 @@ def contar_palavras(frase):
             numero_palavras += 1
             espaco = False
     return numero_palavras
-
 
 def analisador_sintatico(lex):
     erroSint = False  
@@ -419,7 +413,6 @@ def tokenizar(c, estado_atual):  # essa função generaliza todas as entradas
     else:
         return c
 
-
 def erro(t, tk, estado_atual, estado_novo, ini_lexema, fim_lexema):
     # Verifica se o estado atual é final
     token = matriz_de_estados_finais.get(estado_atual, None)
@@ -553,7 +546,7 @@ def scanner(lex):  # retorna o próximo token
                 else:
                     tk.tipo = ""
 
-        #print("Linha ",lex.linha," [",_token,"] ",_lexema)
+        print("Linha ",lex.linha," [",_token,"] ",_lexema)
 
         tk.linha = lex.linha
         tk.coluna = lex.coluna
@@ -575,8 +568,6 @@ def scanner(lex):  # retorna o próximo token
         return tk
 
 # Main(Principal)
-
-
 lex = Lex()
 tokens = Lista_de_tokens()
 analisador_sintatico(lex)

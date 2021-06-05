@@ -1,8 +1,9 @@
 import collections
+from numpy import flatiter
 import pandas as pd
 import math
 
-df_tabela_sintatica = pd.read_csv('tabela_sintatica.csv', sep=';')
+df_tabela_sintatica = pd.read_csv('tabela_sintatica_nova.csv', sep=';')
 df_matriz_follow = pd.read_csv('matriz_follow.csv', sep=';')
 df_matriz_producoes = pd.read_csv(
     'matriz_producoes.csv', sep=';', encoding='utf-8')
@@ -18,7 +19,7 @@ class Lex:
 
 class Token:
     def __str__(self):
-        return "linha=%d,posição=%d,lexema=%s,Classe=%s,tipo=Nulo,erro=%s\n" % (self.linha, self.coluna, self.lexema, self.token, self.erro)
+        return "linha=%d,posição=%d,lexema=%s,Classe=%s,tipo=%s,erro=%s\n" % (self.linha, self.coluna, self.lexema, self.token, self.tipo, self.erro)
     linha = 1
     coluna = 1
     lexema = ""
@@ -60,6 +61,9 @@ class Stack:
 
     def pop(self):
         return self.items.pop()
+    
+    def top(self):
+        return self.items[len(self.items)-1]
 
     def isEmpty(self):
         return (self.items == [])
@@ -67,6 +71,58 @@ class Stack:
 
 pilha = Stack()  # pilha para auxiliar na analise Sintática
 pilha.push(0)
+pilha_semantica = Stack() # pilha para auxiliar na analise Semantica
+
+
+class Semantic:
+    def Semantic(self):
+        self.state = -1
+        self.lexeme = ""
+        self.token = ""
+        self.tipo = ""
+    def get(self,t:Token):
+        self.lexema = t.lexema
+        self.token  = t.token
+        self.tipo   = t.tipo
+    def getS(self,s):
+        if(s.token == ""):
+            return
+        if(self.token == "ARG" or self.token == "id" or self.token == "EXP_R"):
+            return
+        self.token = s.token
+        if(s.lexema != ""):
+            self.lexema = s.lexema        
+        if(s.tipo != ""):
+            self.tipo = s.tipo
+    def inicializar(self):
+        self.state = -1
+        self.lexema = ""
+        self.token = ""
+        self.tipo = ""
+    estado = -1
+    lexema = ""
+    token = ""
+    tipo = ""
+
+class SemanticRules:
+    def SemanticRules(self):
+        self.temporaryCounter = -1
+        self.rule = 0
+        self.generate = True
+        self.tabs = "\t"
+    rule = 0
+    temporaryCounter = ""
+    generate = True
+    tabs = ""
+
+class OutC:
+    def OutC(self):
+        header = "#include<stdio.h>\ntypedef char literal[256];\nvoid main(void)\n{"
+        body = ""
+        declarations = ""
+    header = ""
+    declarations = ""
+    body = ""
 
 class Lista_de_tokens:
     num = "num"
@@ -239,6 +295,86 @@ def contar_palavras(frase):
             espaco = False
     return numero_palavras
 
+def applySemanticRule(semR, lastPop, pilha, expression, lex, outC  ):
+    found = False 
+    tk = Token()
+    aux = ""
+    sem = Semantic()
+
+    # LV -> varfim;
+    if semR.rule == 5:
+        outC.body += "\n"
+
+    #D→ TIPO L;
+    elif semR.rule == 6 :
+        for id in lex.ids :
+            if id.lexema == lastPop.lexema:
+                sem.tipo = lastPop.tipo
+        
+        pilha.top().tipo = lastPop.tipo
+        outC.declarations += "\n"+ semR.tabs + lastPop.type + " " + lastPop.lexeme + ";"
+        lastPop.inicializar()
+    
+    elif semR.rule == 7 :
+        for id in lex.ids :
+            if id.lexema == lastPop.lexema:
+                sem.tipo = lastPop.tipo
+        
+        pilha.top().tipo = lastPop.tipo
+        outC.declarations += "\n"+ semR.tabs + " " + lastPop.lexeme + ";"
+        lastPop.inicializar()
+    
+    elif semR.rule == 8  :
+        for id in lex.ids :
+            if id.lexema == lastPop.lexema:
+                sem.tipo = lastPop.tipo
+        
+        pilha.top().tipo = lastPop.tipo
+        outC.declarations += "\n"+ semR.tabs + " " + lastPop.lexema + ";"
+        lastPop.inicializar()
+        return
+    elif semR.rule == 9:
+        for id in lex.ids :
+            if id.lexema == lastPop.lexema:
+                sem.tipo = lastPop.tipo
+
+        if lastPop.tipo == "inteiro":
+            outC.body += "\n" + semR.tabs + "scanf(\"%lf\", &" + lastPop.lexema + ");"
+        else:
+            print("ERRO! Variavel ", lastPop.lexema, " nao definida!")
+        return
+    
+    elif semR.rule == 10:
+        for id in lex.ids :
+            if id.lexema == lastPop.lexema:
+                sem.tipo = lastPop.tipo
+
+        if lastPop.tipo == "literal":
+            outC.body += "\n" + semR.tabs + "scanf(\"%lf\", &" + lastPop.lexema + ");"
+        else:
+            print("ERRO! Variavel ", lastPop.lexema, " nao definida!")
+        return
+    
+    elif semR.rule + 1  == 11:
+        for id in lex.ids :
+            if id.lexema == lastPop.lexema:
+                sem.tipo = lastPop.tipo
+
+        if lastPop.tipo == "double":
+            outC.body += "\n" + semR.tabs + "scanf(\"%lf\", &" + lastPop.lexema + ");"
+        else:
+            print("ERRO! Variavel ", lastPop.lexema, " nao definida!")
+        return
+
+
+
+
+
+       
+
+
+
+
 
 def analisador_sintatico(lex):
     erroSint = False  
@@ -247,6 +383,12 @@ def analisador_sintatico(lex):
     a = t.token
     tAntigo = t
     print('\nAnalisador sintático\n')
+    lastPop = Semantic()
+    sem = Semantic()
+    semRules = SemanticRules()
+    expression = []
+    outC = OutC
+
     while(1):
         if a != '':
             #topo da pilha
@@ -256,17 +398,19 @@ def analisador_sintatico(lex):
             estado_aux = df_tabela_sintatica[a][s]
             aux = df_tabela_sintatica[a][s][1:(len(estado_aux))]
             acao = df_tabela_sintatica[a][s][0]
-            
-            if t.lexema == 'B':
-                print('aaaa')
-
+                
             if acao == 's' or acao == 'r' or acao == 'E':
                 linhaEstado = int(aux)
 
             #empilhar
-            if acao == 's':                
-                pilha.push(a)
+            if acao == 's': 
+                sem.inicializar()
+                sem.get(t)              
+                pilha.push(t)
                 pilha.push(linhaEstado)
+
+                if (sem.token == tokens.OPR or sem.token == tokens.OPM):
+                    expression.append(sem)
             
                 if erroSint: 
                     t = tAntigo
@@ -276,27 +420,53 @@ def analisador_sintatico(lex):
 
                 a = t.token
 
+                while t.linha < 0:
+                    #parseLexicalError(lex, tok, tokens);
+                    semRules.generate = False
+
             #reduzir
             elif acao == 'r':
                 #produção gerada
                 aux2 = df_matriz_producoes['Nonterminal'][linhaEstado]
                 linhaProd = linhaEstado
+                semRules.rule = linhaEstado + 1 
+
+                print('Regra: ',df_matriz_producoes['Nonterminal'][linhaProd],'->',df_matriz_producoes['producoes'][linhaProd])
 
                 #desempilha de acordo com a quantidade de produções
                 for i in range(df_matriz_producoes['tamProd'][linhaEstado]):
                     pilha.pop()
+                    if semRules.generate:
+                        lastPop.get(pilha.top())
                     pilha.pop()
                 
                 linhaEstado = pilha.items[len(pilha.items)-1]
                 
-                pilha.push(aux2)          
+                sem.inicializar()
+
+                pilha.push(t) 
                 aux_estado = df_tabela_sintatica[aux2][linhaEstado]
+            
+                if semRules.generate:
+                    applySemanticRule(semRules, lastPop, pilha, expression, lex, outC)
+
+                sem.inicializar()
                 pilha.push(int(df_tabela_sintatica[aux2][linhaEstado][1:(len(aux_estado))]))
-                print('Regra: ',df_matriz_producoes['Nonterminal'][linhaProd],'->',df_matriz_producoes['producoes'][linhaProd])
-                
+
+
+
+
             #aceita
             elif acao == 'a':
-                print('\n----- ACEITA -----\n')            
+                print('\n----- ACEITA -----\n')
+
+                if semRules.generate:
+                    outC.body += "\n}"
+                    print(" Arquivo .c gerado.")
+                    #ofstream archive("out.c");
+                    print(outC.header, outC.declarations, outC.body)
+                else:
+                    print(" Erros encontrados, Arquivo .c nao foi gerado.")        
                 return
             #erro
             elif acao == 'E':
@@ -366,10 +536,16 @@ def analisador_sintatico(lex):
                                 pilha.pop()
 
                         print("Recuperando análise sintática\n")                                        
-        else:           
+        else:
             print('Erro lexico'+ t.erro)
+
+            if t.erro.split == 'ERRO2' or t.erro.split == 'ERRO5':
+                print('Esperava argumento "num"'+'\n' +
+                    'Linha : {} | Coluna : {}'.format(t.linha, t.coluna-2))      
+            
             t = scanner(lex)
-            a = t.token  
+            a = t.token
+            
 
 def eqToken(token):
     tokenTrad = token
@@ -468,6 +644,7 @@ def erro(t, tk, estado_atual, estado_novo, ini_lexema, fim_lexema):
     tk.coluna = lex.coluna
     tk.lexema = lex.codigo_mgol[ini_lexema:fim_lexema]
     tk.erro = "ERRO5 – Caractere invalido: '" + tk.lexema + "'"
+    lex.codigo_mgol = lex.codigo_mgol[1:len(lex.codigo_mgol)]
     return tk
 
 
@@ -545,9 +722,9 @@ def scanner(lex):  # retorna o próximo token
                 _token = _lexema
                 # os tipos definidos pela linguagem são int, lit e real
                 if (_token == tokens.inteiro):
-                    tk.tipo = "int"
+                    tk.tipo = "inteiro"
                 elif (_token == tokens.lit):
-                    tk.tipo = "lit"
+                    tk.tipo = "literal"
                 elif (_token == tokens.real):
                     tk.tipo = "real"
                 else:
@@ -557,6 +734,7 @@ def scanner(lex):  # retorna o próximo token
 
         tk.linha = lex.linha
         tk.coluna = lex.coluna
+        tk.tipo = tk.tipo
         tk.lexema = _lexema
         tk.token = _token
         return tk

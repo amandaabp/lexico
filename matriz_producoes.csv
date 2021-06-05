@@ -4,7 +4,7 @@ P;inicio V A;3;;;
 V;varinicio LV;2;;;
 LV;D LV;2;;;
 LV;"varfim ;";2;;;
-D;"L TIPO ;";3;;;
+D;"TIPO L ;";3;;;
 L;id , L;3;;;
 L;id;1;;;
 TIPO;int;1;;;

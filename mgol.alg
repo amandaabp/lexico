@@ -1,9 +1,9 @@
 inicio
 	varinicio
-		A lit;
-		B inteiro;
-		D inteiro;
-		C real;
+		lit A;
+		inteiro B;
+		inteiro D;
+		real C;
 	varfim;
 
 	escreva "Digite B";
@@ -20,11 +20,11 @@ inicio
 		fimse
 	fimse
 
-	B<-B+;
+	B<-B+1;
 	B<-B+2;
 	B<-B+2;
 	D<-B;
-	C<-5.0;
+	C<-5.1;
 
 	escreva "\nB=\n";
 	escreva D;

@@ -582,6 +582,11 @@ def analisador_sintatico(lex):
             
             estado = pilha.top().estado
 
+            if pilha.top().estado == -1:
+                estado = 0
+            else:
+                estado = pilha.top().estado
+
             sem.inicializar()
             sem.token = reduction
             pilha.push(copy.deepcopy(sem))
@@ -596,8 +601,102 @@ def analisador_sintatico(lex):
             pilha.top().estado = estado_aux
 
 
-        elif (acao == "a"):
-            print("Aceita")
+        # aceita
+        elif acao == 'a':
+            print('\n----- ACEITA -----\n')
+
+            if semRules.generate:
+                outC.body += "\n}"
+                print(" Arquivo .c gerado.")
+                # Abre(ou cria) um arquivo .c com o nome do arquivo em mgol que está sendo analisado 
+                arqDestino = open(str("out")+".c", "w+")
+                # Imprime um elemento da lista TextoArquivo
+                arqDestino.write( outC.header + outC.declarations + outC.body)
+                # Fim do arquivo
+                arqDestino.write("}\n")
+                arqDestino.close()
+                print("Arquivo " + "out" +  ".c gerado")
+            else:
+                print(" Erros encontrados, Arquivo .c nao foi gerado.")
+            return
+        # erro
+        elif acao == 'E':
+            faltSib={}
+            impriLista=""
+
+            linhas=df_tabela_sintatica.values[s]
+            colunas=df_tabela_sintatica.columns
+
+            for k, v in zip(linhas, colunas):
+                if v != 'estado':
+                    if k != '0' and k != 0:
+                        if k[0] != 'E':
+                            faltSib.update({v: k})
+                            nomeToken=eqToken(v)
+                            impriLista=impriLista + " " + str(nomeToken)
+            print("\nErro Sintático.\nLinha: ", t.linha, "Coluna: ",
+                    t.coluna, "\n Faltando símbolo(s):", impriLista)
+
+            if len(faltSib) == 1:
+                print("\tTratamento de erro. Inserindo símbolo ausente...")
+                chave=[key for key in faltSib.keys()]
+
+                tAntigo=t
+
+                a=chave[0]
+
+                erroSint=True
+
+                pilha.pop()
+                pilha.pop()
+                pilha.push(chave[0])
+                pilha.push(int(aux))
+
+                print("\nInserindo para continuar a análise.")
+                print("\nFim de tratamento de erro\n")
+            else:
+                print("\nTratamento de erro.")
+                listaFollow=df_matriz_follow['FOLLOW'][int(s)-1]
+                aux=1
+
+                while (aux):
+                    while True:
+                        t=scanner(lex)
+                        a=t.token
+
+                        if a == "$":
+                            print("Fim de tratamento de erro\n")
+                            print("Finalizada. Falha!")
+                            return
+
+                        elif a != "comentario":
+                            break
+
+                    if listaFollow == '0':
+                        print("A análise não conseguiu se recuperar do erro: ")
+                        break
+                    else:
+                        for token in listaFollow.split():
+                            if token == a:
+                                aux=0
+                                break
+
+                    x=df_matriz_producoes['tamProd'][int(s)]
+                    if x:
+                        for i in range(0, int(x)):
+                            pilha.pop()
+                            pilha.pop()
+
+                    print("Recuperando análise sintática\n")
+    else:
+        print('Erro lexico' + t.erro)
+
+        if t.erro.split == 'ERRO2' or t.erro.split == 'ERRO5':
+            print('Esperava argumento "num"'+'\n' +
+                'Linha : {} | Coluna : {}'.format(t.linha, t.coluna-2))
+
+        t=scanner(lex)
+        a=t.token
 
 def eqToken(token):
     tokenTrad=token

@@ -797,7 +797,8 @@ def analisador_sintatico(lex):
             
             sem.inicializar()
             sem.estado = estado
-            pilha.push(copy.deepcopy(sem))
+            pilha.top().estado = estado
+            #pilha.push(copy.deepcopy(sem))
 
             lastLexeme = tok.lexema
             tok = scanner(lex)
@@ -832,7 +833,8 @@ def analisador_sintatico(lex):
             estado_aux =  int(df_tabela_sintatica[reduction][estado][1:(len(aux_estado))])
             sem.inicializar()
             sem.estado = estado_aux
-            pilha.push(copy.deepcopy(sem))
+            pilha.top().estado = estado_aux
+
 
         elif (acao == "a"):
             print("Aceita")

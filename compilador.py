@@ -16,7 +16,6 @@ class Lex:
     coluna = 1
     ids = []
 
-
 class Token:
     def __str__(self):
         return "linha=%d,posição=%d,lexema=%s,Classe=%s,tipo=%s,erro=%s\n" % (self.linha, self.coluna, self.lexema, self.token, self.tipo, self.erro)
@@ -139,6 +138,8 @@ class OutC:
     declarations = ""
     body = ""
 
+pilha = Stack()  # pilha para auxiliar na analise Sintática
+pilha.push(0)
 
 class Lista_de_tokens:
     num = "num"
@@ -168,7 +169,6 @@ class Lista_de_tokens:
     inteiro = "inteiro"
     lit = "lit"
     real = "real"
-
 
 tokens = Lista_de_tokens()
 
@@ -260,7 +260,6 @@ matriz_de_estados_finais = {
     22: tokens.VIR
 }
 
-
 def palavra_reservada(w):
     return (w == tokens.inicio or
             w == tokens.varinicio or
@@ -274,7 +273,6 @@ def palavra_reservada(w):
             w == tokens.inteiro or
             w == tokens.lit or
             w == tokens.real)
-
 
 def proxima_acao(estado):
     if (estado == 999):
@@ -312,7 +310,6 @@ def contar_palavras(frase):
             numero_palavras += 1
             espaco = False
     return numero_palavras
-
 
 def applySemanticRule(semR, lastPop, pilha, expression, lex, outC):
     found = False
@@ -894,7 +891,6 @@ def tokenizar(c, estado_atual):  # essa função generaliza todas as entradas
     else:
         return c
 
-
 def erro(t, tk, estado_atual, estado_novo, ini_lexema, fim_lexema):
     # Verifica se o estado atual é final
     token=matriz_de_estados_finais.get(estado_atual, None)
@@ -926,7 +922,7 @@ def erro(t, tk, estado_atual, estado_novo, ini_lexema, fim_lexema):
                     tk.lexema=lex.codigo_mgol[ini_lexema:fim_lexema]
                     tk.erro="ERRO2 – Falta um valor ou variavel aqui: '" + tk.lexema + "'"
                     lex.codigo_mgol=lex.codigo_mgol[1:len(lex.codigo_mgol)]
-                    return tk
+
         else:
             tk.linha=lex.linha
             tk.coluna=lex.coluna
@@ -939,11 +935,11 @@ def erro(t, tk, estado_atual, estado_novo, ini_lexema, fim_lexema):
         tk.lexema=lex.codigo_mgol[ini_lexema:fim_lexema]
         tk.erro="ERRO4 – Caractere invalido: '" + tk.lexema + "'"
         return tk
-    tk.linha=lex.linha
-    tk.coluna=lex.coluna
-    tk.lexema=lex.codigo_mgol[ini_lexema:fim_lexema]
-    tk.erro="ERRO5 – Caractere invalido: '" + tk.lexema + "'"
-    lex.codigo_mgol=lex.codigo_mgol[1:len(lex.codigo_mgol)]
+    tk.linha = lex.linha
+    tk.coluna = lex.coluna
+    tk.lexema = lex.codigo_mgol[ini_lexema:fim_lexema]
+    tk.erro = "ERRO5 – Caractere invalido: '" + tk.lexema + "'"
+    lex.codigo_mgol = lex.codigo_mgol[1:len(lex.codigo_mgol)]
     return tk
 
 
@@ -956,11 +952,12 @@ def scanner(lex):  # retorna o próximo token
     ini_lexema=0
     fim_lexema=-1   # para retirar cada lexema da string que armazena o código completo
     for c in lex.codigo_mgol:  # vou iterar caractere por caractere no código, até encontrar o próximo token
-        if c == '\0' and estado_atual == -1 and estado_novo == -1:
-            tk.linha=lex.linha
-            tk.lexema=tokens.EndOfFile
-            tk.token=tokens.EndOfFile
+        if c == '\0' and estado_atual == -1 and estado_novo == -1:          
+            tk.linha = lex.linha
+            tk.lexema = tokens.EndOfFile
+            tk.token = tokens.EndOfFile
             return tk
+
         fim_lexema += 1
         t=tokenizar(c, estado_atual)
 
@@ -990,10 +987,11 @@ def scanner(lex):  # retorna o próximo token
             if c == '\t' or c == ' ':
                 lex.coluna += 1
         elif estado_novo == 0:  # TRATAMENTO DE ERRO
-            er = erro(t, tk, estado_atual, estado_novo, ini_lexema, fim_lexema)
+            er = erro(t, tk, estado_atual, estado_novo, ini_lexema, fim_lexema)            
             if er == 0:
                 break
             else:
+                tk.token = matriz_de_estados_finais.get(estado_atual, None)
                 return er
         else:
             lex.coluna += 1
@@ -1030,6 +1028,7 @@ def scanner(lex):  # retorna o próximo token
                     tk.tipo = ""
 
         # print("Linha ",lex.linha," [",_token,"] ",_lexema)
+        print("Linha ",lex.linha," [",_token,"] ",_lexema)
 
         tk.linha = lex.linha
         tk.coluna = lex.coluna
@@ -1051,9 +1050,173 @@ def scanner(lex):  # retorna o próximo token
         tk.lexema = _lexema
         return tk
 
+#função para interpretar alguns tokens
+def eqToken(token):
+    tokenTrad = token
+    if token == "OPM":
+        return tokenTrad + " - Operador Matemático"
+    if token == "OPR":
+        return tokenTrad + " - Operador Relacional"
+    if token == "id":
+        return tokenTrad + " - identificador"
+    if token == "num":
+        return tokenTrad + " - número" 
+    if token == "RCB":
+        return tokenTrad + " - Atribuição"
+    if token == "AB_P":
+        return tokenTrad + " - Abre Parêntesis - '('"
+    if token == "FC_P":
+        return tokenTrad + " - Fecha Parêntesis - ')'"
+    if token == "PT_V":
+        return tokenTrad + " - Ponto e Vírgula - ;"
+    if token == "VIR":
+        return tokenTrad + " - Vírgula - ,"
+    else:
+        return token
+
+def tratar_erro_lexico(lex,t):
+    lex.codigo_mgol = lex.codigo_mgol[len(t.lexema):len(lex.codigo_mgol)]
+    lex.codigo_mgol = t.lexema + "0" + lex.codigo_mgol
+    t = scanner(lex)
+
+def analisador_sintatico(lex):
+    erroSint = False  
+    ler_arquivo_mgol(lex)
+    t = scanner(lex)
+    a = t.token
+    tAntigo = t
+    print('\nAnalisador sintático\n')
+    while(1):
+        if a != '':
+            #topo da pilha
+            s = pilha.items[len(pilha.items)-1] 
+
+            #busca acao na tabela sintatica
+            estado_aux = df_tabela_sintatica[a][s]
+            aux = df_tabela_sintatica[a][s][1:(len(estado_aux))]
+            acao = df_tabela_sintatica[a][s][0]
+                
+            if acao == 's' or acao == 'r' or acao == 'E':
+                linhaEstado = int(aux)
+
+            #empilhar
+            if acao == 's':                
+                pilha.push(a)
+                pilha.push(linhaEstado)
+            
+                if erroSint: 
+                    t = tAntigo
+                    erroSint = False
+                else:
+                    t = scanner(lex)
+
+                if t.erro is not '':
+                    tratar_erro_lexico(lex,t)
+
+                a = t.token
+
+            #reduzir
+            elif acao == 'r':
+                #produção gerada
+                aux2 = df_matriz_producoes['Nonterminal'][linhaEstado]
+                linhaProd = linhaEstado
+
+                #desempilha de acordo com a quantidade de produções
+                for i in range(df_matriz_producoes['tamProd'][linhaEstado]):
+                    pilha.pop()
+                    pilha.pop()
+                
+                linhaEstado = pilha.items[len(pilha.items)-1]
+                
+                pilha.push(aux2)          
+                aux_estado = df_tabela_sintatica[aux2][linhaEstado]
+                pilha.push(int(df_tabela_sintatica[aux2][linhaEstado][1:(len(aux_estado))]))
+                print('Regra: ',df_matriz_producoes['Nonterminal'][linhaProd],'->',df_matriz_producoes['producoes'][linhaProd])
+                
+            #aceita
+            elif acao == 'a':
+                print('\n----- ACEITA -----\n')            
+                return
+            #erro
+            elif acao == 'E':
+                faltSib = {}
+                impriLista = ""
+
+                linhas = df_tabela_sintatica.values[s]
+                colunas = df_tabela_sintatica.columns
+
+                for k,v in zip(linhas, colunas):
+                    if v !='estado':
+                        if k != '0' and k != 0:
+                            if k[0] != 'E':
+                                faltSib.update({v : k})
+                                nomeToken = eqToken(v)
+                                impriLista = impriLista + " " + str(nomeToken)
+                print("\nErro Sintático.\nLinha: ", t.linha,"Coluna: ",t.coluna, "\n Faltando símbolo(s):",impriLista)
+
+                if len(faltSib) == 1:
+                    print("\tTratamento de erro. Inserindo símbolo ausente...")
+                    chave = [key for key in faltSib.keys()]
+
+                    tAntigo = t
+
+                    a = chave[0]
+
+                    erroSint = True 
+
+                    pilha.pop()
+                    pilha.pop()
+                    pilha.push(chave[0])
+                    pilha.push(int(aux))
+
+                    print("\nInserindo para continuar a análise.")
+                    print("\nFim de tratamento de erro\n")
+                else:
+                    print("\nTratamento de erro.")
+                    listaFollow = df_matriz_follow['FOLLOW'][int(s)-1]
+                    aux = 1
+
+                    while (aux):
+                        while True:
+                            t = scanner(lex)
+                            a = t.token
+ 
+                            if a == "$":
+                                print("Fim de tratamento de erro\n")
+                                print("Finalizada. Falha!")
+                                return
+
+                            elif a != "comentario":
+                                break
+
+                        if listaFollow == '0':
+                            print("A análise não conseguiu se recuperar do erro: ")
+                            break
+                        else:
+                            for token in listaFollow.split():
+                                if token == a:
+                                    aux = 0
+                                    break
+                            
+                        x = df_matriz_producoes['tamProd'][int(s)]
+                        if x:
+                            for i in range(0, int(x)):
+                                pilha.pop()
+                                pilha.pop()
+
+                        print("Recuperando análise sintática\n")                                        
+        else:
+            print('Erro lexico'+ t.erro)
+
+            if t.erro.split == 'ERRO2' or t.erro.split == 'ERRO5':
+                print('Esperava argumento "num"'+'\n' +
+                    'Linha : {} | Coluna : {}'.format(t.linha, t.coluna-2))      
+            
+            t = scanner(lex)
+            a = t.token            
+
+
 # Main(Principal)
-
-
 lex = Lex()
 tokens = Lista_de_tokens()
 analisador_sintatico(lex)

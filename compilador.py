@@ -800,7 +800,7 @@ def analisador_sintatico(lex):
             pilha.push(copy.deepcopy(sem))
 
             lastLexeme = tok.lexema
-            tok = scanner(copy.deepcopy(sem))
+            tok = scanner(lex)
 
             while tok.linha < 0:
                 #fazer erro lexico
@@ -1021,7 +1021,6 @@ def scanner(lex):  # retorna o próximo token
                     tk.tipo = ""
 
         # print("Linha ",lex.linha," [",_token,"] ",_lexema)
-        print("Linha ",lex.linha," [",_token,"] ",_lexema)
 
         tk.linha = lex.linha
         tk.coluna = lex.coluna

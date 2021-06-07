@@ -3,260 +3,20 @@ from numpy import flatiter
 import pandas as pd
 import math
 import copy
+import classes as classes
+import matrizes as matrizes
 
 df_tabela_sintatica = pd.read_csv('tabela_sintatica_nova.csv', sep=';')
 df_matriz_follow = pd.read_csv('matriz_follow.csv', sep=';')
 df_matriz_producoes = pd.read_csv(
     'matriz_producoes.csv', sep=';', encoding='utf-8')
 
-
-class Lex:
-    codigo_mgol = ""
-    qtd_linhas = 0
-    linha = 1
-    coluna = 1
-    ids = []
-
-class Token:
-    def __str__(self):
-        return "linha=%d,posição=%d,lexema=%s,Classe=%s,tipo=%s,erro=%s\n" % (self.linha, self.coluna, self.lexema, self.token, self.tipo, self.erro)
-    linha = 1
-    coluna = 1
-    lexema = ""
-    token = ""
-    tipo = "Nulo"
-    erro = ""
-    estado = -1
-
-class Semantic:
-    def Semantic(self):
-        self.estado = -1
-        self.lexeme = ""
-        self.token = ""
-        self.tipo = ""
-        
-    def get(self, t: Token):
-        self.lexema = t.lexema
-        self.token = t.token
-        self.tipo = t.tipo
-
-    def getS(self, s):
-        if(s.token == ""):
-            return
-        if(self.token == "ARG" or self.token == "id" or self.token == "EXP_R"):
-            return
-        self.token = s.token
-        if(s.lexema != ""):
-            self.lexema = s.lexema
-        if(s.tipo != ""):
-            self.tipo = s.tipo
-
-    def inicializar(self):
-        self.estado = -1
-        self.lexema = ""
-        self.token = ""
-        self.tipo = ""
-    estado = -1
-    lexema = ""
-    token = ""
-    tipo = ""
-
-
-class Stack:
-     def __init__(self):
-         self.items = []
-
-     def isEmpty(self):
-         return self.items == []
-
-     def push(self, item):
-         self.items.append(item)
-
-     def pop(self):
-         return self.items.pop()
-
-     def top(self):
-         return self.items[len(self.items)-1]
-
-     def size(self):
-         return len(self.items)
-
-
-class Semanticn:
-    def Semantic(self):
-        self.estado = -1
-        self.lexeme = ""
-        self.token = ""
-        self.tipo = ""
-
-    def get(self, t: Token):
-        self.lexema = t.lexema
-        self.token = t.token
-        self.tipo = t.tipo
-
-    def getS(self, s):
-        if(s.token == ""):
-            return
-        if(self.token == "ARG" or self.token == "id" or self.token == "EXP_R"):
-            return
-        self.token = s.token
-        if(s.lexema != ""):
-            self.lexema = s.lexema
-        if(s.tipo != ""):
-            self.tipo = s.tipo
-
-    def inicializar(self):
-        self.estado = -1
-        self.lexema = ""
-        self.token = ""
-        self.tipo = ""
-    estado = -1
-    lexema = ""
-    token = ""
-    tipo = ""
-
-
-class SemanticRules:
-    def SemanticRules(self):
-        self.temporaryCounter = -1
-        self.rule = 0
-        self.generate = True
-        self.tabs = "\t"
-    rule = 0
-    temporaryCounter = -1
-    generate = True
-    tabs = ""
-
-class OutC:
-    def OutC(self):
-        header = "#include<stdio.h>\ntypedef char literal[256];\nvoid main(void)\n{"
-        body = ""
-        declarations = ""
-    header = ""
-    declarations = ""
-    body = ""
-
-pilha = Stack()  # pilha para auxiliar na analise Sintática
+pilha = classes.Stack()  # pilha para auxiliar na analise Sintática
 pilha.push(0)
 
-class Lista_de_tokens:
-    num = "num"
-    id_ = "id"
-    comentario = "comentario"
-    literal = "literal"
-    OPR = "OPR"
-    RCB = "RCB"
-    OPM = "OPM"
-    AB_P = "AB_P"
-    FC_P = "FC_P"
-    PT_V = "PT_V"
-    VIR = "VIR"
-    ERRO = "ERRO"
-    EndOfFile = "EndOfFile"
-    inicio = "inicio"
-    varinicio = "varinicio"
-    varfim = "varfim"
-    escreva = "escreva"
-    leia = "leia"
-    se = "se"
-    entao = "entao"
-    fimse = "fimse"
-    faca_ate = "faca_ate"
-    fimfaca = "fimfaca"
-    fim = "fim"
-    inteiro = "inteiro"
-    lit = "lit"
-    real = "real"
-
-tokens = Lista_de_tokens()
-
-matriz_de_estados_lexica = {
-    ('S', -1): -1,
-    ('S', 1): -1,
-    ('S', 2): -1,
-    ('S', 4): -1,
-    ('S', 7): -1,
-    ('S', 8): -1,
-    ('S', 9): -1,
-    ('S', 10): -1,
-    ('S', 11): -1,
-    ('S', 12): -1,
-    ('S', 13): -1,
-    ('S', 14): -1,
-    ('S', 15): -1,
-    ('S', 17): -1,
-    ('S', 19): -1,
-    ('S', 20): -1,
-
-    (';', 1): -1,
-    (';', 2): -1,
-    (';', 4): -1,
-    (';', 7): -1,
-    (';', 19): -1,
-
-    ('L', -1): 1,
-    ('L', 1): 1,
-    ('_', 1): 1,
-
-    ('D', -1): 2,
-    ('D', 1): 1,
-    ('D', 2): 2,
-    ('D', 3): 4,
-    ('D', 4): 4,
-    ('D', 5): 7,
-    ('D', 6): 7,
-    ('D', 7): 7,
-
-    ('E', 2): 5,
-    ('E', 4): 5,
-    ('e', 2): 5,
-    ('e', 4): 5,
-    ('.', 2): 3,
-    ('-', 5): 6,
-    ('+', 5): 6,
-
-    ('(', -1): 13,
-    (')', -1): 14,
-    (';', -1): 15,
-    ('+', -1): 17,
-    ('*', -1): 17,
-    ('-', -1): 17,
-    ('/', -1): 17,
-
-    ('>', -1): 9,
-    ('<', -1): 10,
-    ('=', -1): 9,
-    ('>', 10): 12,
-    ('=', 10): 12,
-    ('=', 9): 12,
-    ('-', 10): 11,
-
-    ('"', -1): 18,
-    ('A', 18): 18,
-    ('"', 18): 19,
-    ('{', -1): 16,
-    ('A', 16): 16,
-    ('}', 16): 20
-}
-
-matriz_de_estados_finais = {
-    1: tokens.id_,
-    2: tokens.num,
-    4: tokens.num,
-    7: tokens.num,
-    8: tokens.fim,
-    9: tokens.OPR,
-    10: tokens.OPR,
-    11: tokens.RCB,
-    12: tokens.OPR,
-    13: tokens.AB_P,
-    14: tokens.FC_P,
-    15: tokens.PT_V,
-    17: tokens.OPM,
-    19: tokens.literal,
-    20: tokens.comentario,
-    22: tokens.VIR
-}
+tokens = classes.Lista_de_tokens()
+matriz_de_estados_finais = matrizes.matriz_de_estados_finais
+matriz_de_estados_lexica = matrizes.matriz_de_estados_lexica
 
 def palavra_reservada(w):
     return (w == tokens.inicio or
@@ -309,9 +69,9 @@ def contar_palavras(frase):
 
 def applySemanticRule(semR, lastPop, pilha, expression, lex, outC):
     found = False
-    tk = Token()
+    tk = classes.Token()
     aux = ""
-    sem = Semantic()
+    sem = classes.Semantic()
 
     # P' → P ou P→ inicio V A ou V→ varincio LV ou LV→ D LV
     if semR.rule == 1 or semR.rule == 2 or semR.rule == 3 or semR.rule == 4:
@@ -576,11 +336,11 @@ def analisador_sintatico_antigo(lex):
     a=t.token
     tAntigo=t
     print('\nAnalisador sintático\n')
-    lastPop=Semantic()
-    sem=Semantic()
-    semRules=SemanticRules()
+    lastPop= classes.Semantic()
+    sem= classes.Semantic()
+    semRules= classes.SemanticRules()
     expression=[]
-    outC=OutC
+    outC= classes.OutC
 
     while(1):
         if a != '':
@@ -752,11 +512,11 @@ def analisador_sintatico_antigo(lex):
 def analisador_sintatico(lex):
     erroSint=False
     ler_arquivo_mgol(lex)
-    tok = Token()
-    sem = Semantic()
-    lastPop = Semantic()
-    semRules = SemanticRules()
-    pilha = Stack()  # pilha para auxiliar na analise Sintática
+    tok = classes.Token()
+    sem = classes.Semantic()
+    lastPop = classes.Semantic()
+    semRules = classes.SemanticRules()
+    pilha = classes.Stack()  # pilha para auxiliar na analise Sintática
     pilha.push(0)
     i = 0
     estado = -1
@@ -764,7 +524,7 @@ def analisador_sintatico(lex):
     lastLexeme = ""
     errorHandle = ""
     expression=[]
-    outC = OutC()
+    outC = classes.OutC()
     
     tok=scanner(lex)
 
@@ -1038,8 +798,8 @@ def erro(t, tk, estado_atual, estado_novo, ini_lexema, fim_lexema):
     return tk
 
 def scanner(lex):  # retorna o próximo token
-    tk=Token()
-    snt=Semantic()
+    tk=classes.Token()
+    snt=classes.Semantic()
     estado_atual=-1  # o estado inicial é -1
     estado_novo=-1
     # ini_lexema e fim_lexema marcam as posições de início e o fim de cada lexema
@@ -1173,6 +933,6 @@ def tratar_erro_lexico(lex,t):
     t = scanner(lex)
 
 # Main(Principal)
-lex = Lex()
-tokens = Lista_de_tokens()
+lex = classes.Lex()
+tokens = classes.Lista_de_tokens()
 analisador_sintatico(lex)

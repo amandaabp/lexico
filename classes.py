@@ -121,7 +121,7 @@ class OutC:
         header = "#include<stdio.h>\ntypedef char literal[256];\nvoid main(void)\n{"
         body = ""
         declarations = ""
-    header = ""
+    header =  "#include<stdio.h>\ntypedef char literal[256];\nvoid main(void)\n{"
     declarations = ""
     body = ""
 

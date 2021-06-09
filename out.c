@@ -5,9 +5,9 @@ int D;
 double C;
 
 printf("\nB=\n");
-printf(D);
+printf("%d", D);
 printf("\n");
-printf(C);
+printf("%lf", C);
 printf("\n");
-printf(A);
+printf("%s", A);
 }}

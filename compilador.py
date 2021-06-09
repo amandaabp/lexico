@@ -507,7 +507,7 @@ def analisador_sintatico(lex):
     cont_expres = False
     ids_declarados = []
     found = False
-    tok=scanner(lex)
+    tok=lexico.scanner(lex)
 
     if tok.linha < 0 and not tok.token:
         print("ERRO - linha", tok.linha, " - ", tok.token)

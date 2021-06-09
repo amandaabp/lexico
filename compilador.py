@@ -68,8 +68,7 @@ def contar_palavras(frase):
             espaco = False
     return numero_palavras
 
-def applySemanticRule(semR, lastPop, pilha, expression, lex, outC, ids_declarados, expression_declarada):
-    found = False
+def applySemanticRule(semR, lastPop, pilha, expression, lex, outC, ids_declarados, expression_declarada, found):
     tk = classes.Token()
     aux = ""
     sem = classes.Semantic()
@@ -151,7 +150,7 @@ def applySemanticRule(semR, lastPop, pilha, expression, lex, outC, ids_declarado
             if id.lexema == lastPop.lexema:
                 sem.tipo = lastPop.tipo
 
-        if found:
+        if lastPop.tipo != 'Nulo' and lastPop.tipo != '':
             if lastPop.tipo == "literal":
                 outC.body += "\n" + semR.tabs + \
                     "printf(\"%s\", " + lastPop.lexema + ");"
@@ -554,7 +553,7 @@ def analisador_sintatico(lex):
     expression_declarada = []
     cont_expres = False
     ids_declarados = []
-    
+    found = False
     tok=scanner(lex)
 
     if tok.linha < 0 and not tok.token:
@@ -635,7 +634,7 @@ def analisador_sintatico(lex):
             pilha.push(copy.deepcopy(sem))
 
             if semRules.generate:
-                applySemanticRule(semRules, lastPop, pilha, expression, lex, outC, ids_declarados, expression_declarada)
+                applySemanticRule(semRules, lastPop, pilha, expression, lex, outC, ids_declarados, expression_declarada, found)
             
             aux_estado= df_tabela_sintatica[reduction][estado]
             estado_aux =  int(df_tabela_sintatica[reduction][estado][1:(len(aux_estado))])

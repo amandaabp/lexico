@@ -21,7 +21,7 @@ class Token:
 class Semantic:
     def Semantic(self):
         self.estado = -1
-        self.lexeme = ""
+        self.lexema = ""
         self.token = ""
         self.tipo = ""
         
@@ -105,25 +105,25 @@ class Semanticn:
     token = ""
     tipo = ""
 
-class SemanticRules:
-    def SemanticRules(self):
-        self.temporaryCounter = -1
-        self.rule = 0
-        self.generate = True
+class RegrasSemanticas:
+    def RegrasSemanticas(self):
+        self.contador_temp = -1
+        self.regra = 0
+        self.gerar = True
         self.tabs = "\t"
-    rule = 0
-    temporaryCounter = -1
-    generate = True
+    regra = 0
+    contador_temp = -1
+    gerar = True
     tabs = ""
 
 class OutC:
     def OutC(self):
-        header = "#include<stdio.h>\ntypedef char literal[256];\nvoid main(void)\n{"
-        body = ""
-        declarations = ""
-    header =  "#include<stdio.h>\ntypedef char literal[256];\nvoid main(void)\n{"
-    declarations = ""
-    body = ""
+        cabecalho = "#include<stdio.h>\ntypedef char literal[256];\nvoid main(void)\n{"
+        corpo = ""
+        declaracoes = ""
+    cabecalho =  "#include<stdio.h>\ntypedef char literal[256];\nvoid main(void)\n{"
+    declaracoes = ""
+    corpo = ""
 
 class Lista_de_tokens:
     num = "num"

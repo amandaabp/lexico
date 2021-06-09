@@ -26,7 +26,7 @@ def applySemanticRule(semR, lastPop, pilha, expression, lex, outC, ids_declarado
     aux = ""
     sem = classes.Semantic()
     global regrasArg
-
+    achou =  False
 
     # P' → P ou P→ inicio V A ou V→ varincio LV ou LV→ D LV
     if semR.rule == 1 or semR.rule == 2 or semR.rule == 3 or semR.rule == 4:
@@ -229,7 +229,6 @@ def applySemanticRule(semR, lastPop, pilha, expression, lex, outC, ids_declarado
     elif semR.rule == 22:
         for id in lex.ids:
             if id.lexema == lastPop.lexema:
-                tipo_tem.append(id.tipo)
                 lastPop.tipo = id.tipo
                 achou = True
                 return

@@ -73,6 +73,8 @@ def applySemanticRule(semR, lastPop, pilha, expression, lex, outC, ids_declarado
     tk = classes.Token()
     aux = ""
     sem = classes.Semantic()
+    global regrasArg
+
 
     # P' → P ou P→ inicio V A ou V→ varincio LV ou LV→ D LV
     if semR.rule == 1 or semR.rule == 2 or semR.rule == 3 or semR.rule == 4:
@@ -549,6 +551,9 @@ def analisador_sintatico(lex):
     errorHandle = ""
     expression=[]
     outC = classes.OutC()
+    expression_declarada = []
+    cont_expres = False
+    ids_declarados = []
     
     tok=scanner(lex)
 

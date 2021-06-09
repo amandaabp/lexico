@@ -31,7 +31,7 @@ class Token:
 class Semantic:
     def Semantic(self):
         self.estado = -1
-        self.lexeme = ""
+        self.lexema = ""
         self.token = ""
         self.tipo = ""
         
@@ -128,13 +128,9 @@ class SemanticRules:
     tabs = ""
 
 class OutC:
-    def OutC(self):
-        header = "#include<stdio.h>\ntypedef char literal[256];\nvoid main(void)\n{"
-        body = ""
-        declarations = ""
-    header = ""
-    declarations = ""
+    header = "#include<stdio.h>\ntypedef char literal[256];\nvoid main(void)\n{"
     body = ""
+    declarations = ""
 
 pilha = Stack()  # pilha para auxiliar na analise Sintática
 pilha.push(0)
@@ -307,11 +303,13 @@ def contar_palavras(frase):
             espaco = False
     return numero_palavras
 
-def applySemanticRule(semR, lastPop, pilha, expression, lex, outC):
+def applySemanticRule(semR, lastPop, pilha, expression, lex, outC, ids_declarados, expression_declarada):
     found = False
     tk = Token()
     aux = ""
     sem = Semantic()
+    global regrasArg
+    tipo_tem = []
 
     # P' → P ou P→ inicio V A ou V→ varincio LV ou LV→ D LV
     if semR.rule == 1 or semR.rule == 2 or semR.rule == 3 or semR.rule == 4:
@@ -338,7 +336,7 @@ def applySemanticRule(semR, lastPop, pilha, expression, lex, outC):
                 sem.tipo = lastPop.tipo
 
         pilha.top().tipo = lastPop.tipo
-        outC.declarations += "\n" + semR.tabs + " " + lastPop.lexeme + ";"
+        outC.declarations += "\n" + semR.tabs + " " + lastPop.lexema + ";"
         lastPop.inicializar()
     # L→ id
     elif semR.rule == 8:
@@ -346,7 +344,7 @@ def applySemanticRule(semR, lastPop, pilha, expression, lex, outC):
             if id.lexema == lastPop.lexema:
                 sem.tipo = lastPop.tipo
 
-        pilha.top().tipo = lastPop.tipo
+        pilha.top().tipo = lastPop.tipo   
         outC.declarations += "\n" + semR.tabs + \
             lastPop.tipo + " " + lastPop.lexema + ";"
         lastPop.inicializar()
@@ -354,6 +352,7 @@ def applySemanticRule(semR, lastPop, pilha, expression, lex, outC):
 
     # TIPO→ int  ou  TIPO→ real  ou TIPO→ lit
     elif semR.rule == 9 or semR.rule == 10 or semR.rule == 11:
+        lex.ids[-1].tipo = lastPop.tipo
         pilha.top().tipo = lastPop.tipo
     # A→ ES A
     elif semR.rule == 12:
@@ -361,17 +360,19 @@ def applySemanticRule(semR, lastPop, pilha, expression, lex, outC):
     # ES→ leia id
     elif semR.rule == 13:
         for id in lex.ids:
-            if id.lexema == lastPop.lexema:
-                sem.tipo = lastPop.tipo
+            if id.lexema == ids_declarados[-1].lexema:
+                sem.tipo = id.tipo
+                lastPop.tipo = id.tipo
+                lastPop.lexema = id.lexema
 
         if lastPop.tipo == "literal":
-            outC.body += "\n" + semR.tabs+"scanf(\"%s\", "+lastPop.lexeme+");"
+            outC.body += "\n" + semR.tabs+"scanf(\"%s\", "+lastPop.lexema+");"
         elif lastPop.tipo == "int":
             outC.body += "\n" + semR.tabs + \
-                "scanf(\"%d\", &" + lastPop.lexeme + ");"
-        elif lastPop.tipo == "real":
+                "scanf(\"%d\", &" + lastPop.lexema + ");"
+        elif lastPop.tipo == "double":
             outC.body += "\n" + semR.tabs + \
-                "scanf(\"%lf\", &" + lastPop.lexeme + ");"
+                "scanf(\"%lf\", &" + lastPop.lexema + ");"
         else:
             print("ERRO! Variavel", lastPop.lexema, " não declarada")
 
@@ -380,6 +381,7 @@ def applySemanticRule(semR, lastPop, pilha, expression, lex, outC):
         return
     # ES→ escreva ARG;
     elif semR.rule == 14:
+        lastPop = copy.deepcopy(regrasArg)
         for id in lex.ids:
             if id.lexema == lastPop.lexema:
                 sem.tipo = lastPop.tipo
@@ -387,13 +389,13 @@ def applySemanticRule(semR, lastPop, pilha, expression, lex, outC):
         if found:
             if lastPop.tipo == "literal":
                 outC.body += "\n" + semR.tabs + \
-                    "printf(\"%s\", " + lastPop.lexeme + ");"
+                    "printf(\"%s\", " + lastPop.lexema + ");"
             elif lastPop.tipo == "int":
                 outC.body += "\n" + semR.tabs + \
-                    "printf(\"%d\", " + lastPop.lexeme + ");"
-            elif lastPop.tipo == "real":
+                    "printf(\"%d\", " + lastPop.lexema + ");"
+            elif lastPop.tipo == "double":
                 outC.body += "\n" + semR.tabs + \
-                    "printf(\"%lf\", " + lastPop.lexeme + ");"
+                    "printf(\"%lf\", " + lastPop.lexema + ");"
         else:
             outC.body += "\n" + semR.tabs + "printf(" + lastPop.lexema + ");"
 
@@ -402,6 +404,7 @@ def applySemanticRule(semR, lastPop, pilha, expression, lex, outC):
         return
     # ARG→ literal  ou ARG→ num
     elif semR.rule == 15 or semR.rule == 16:
+        regrasArg = copy.deepcopy(lastPop)
         pilha.top().lexema = lastPop.lexema
         pilha.top().tipo = lastPop.tipo
         return
@@ -410,9 +413,9 @@ def applySemanticRule(semR, lastPop, pilha, expression, lex, outC):
         for id in lex.ids:
             if id.lexema == lastPop.lexema:
                 found = True
-                if not id.tipo:
+                if len(id.tipo) != 0:
                     pilha.top().lexema = id.lexema
-                    pilha.top().tipo = id.lexema
+                    pilha.top().tipo = id.tipo
                     lastPop.inicializar()
 
         if not pilha.top().tipo or not found:
@@ -432,25 +435,32 @@ def applySemanticRule(semR, lastPop, pilha, expression, lex, outC):
                 if not id.tipo:
                     found = True
 
-        if not found:
+        if found:
             print("ERRO! Variavel nao definida!")
         elif not expression:
-            if not lastPop.tipo:
+            if lastPop.tipo != '':
                 for id in lex.ids:
                     if id.token == lastPop.token and id.lexema == lastPop.lexema:
                         lastPop.tipo = id.tipo
-            if len(expression) != 0:
-                if lastPop.tipo != expression[0].tipo:
+            if len(expression_declarada) != 0:
+                if lastPop.tipo != expression_declarada[-1].tipo:
                     print("ERRO! Variaveis ", lastPop.lexema, " e ",
                         expression[0].lexema, " de tipos diferentes!")
                     semR.generate = False
 
-                outC.body += "\n" + semR.tabs + lastPop.lexeme + \
-                    " = " + expression[0].lexeme + ";"
-                del expression[:]
-        else:
-            outC.body += "\n" + semR.tabs + lastPop.lexema + \
+                outC.body += "\n" + semR.tabs + lastPop.lexema + \
+                    " = " + expression_declarada[-1].lexema + ";"
+                del expression_declarada[:]
+            else:
+                outC.body += "\n" + semR.tabs + lastPop.lexema + \
                 " = " + "T" + str(semR.temporaryCounter) + ";"
+        else:
+            if len(expression_declarada) != 0:
+                outC.body += "\n" + semR.tabs + lastPop.lexema + \
+                    " = " + expression_declarada[-1].lexema + ";"
+            else:
+                outC.body += "\n" + semR.tabs + lastPop.lexema + \
+                    " = " + "T" + str(semR.temporaryCounter) + ";"
 
         lastPop.inicializar()
         return
@@ -467,23 +477,26 @@ def applySemanticRule(semR, lastPop, pilha, expression, lex, outC):
                     "ERRO! Variaveis literais nao podem estar dentro de uma expressao!")
                 semR.generate=False
                 return
-
-        sem.lexema == "T" + str(semR.temporaryCounter + 1)
+        semR.temporaryCounter = semR.temporaryCounter + 1
+        sem.lexema = "T" + str(semR.temporaryCounter)
         #sem.token = tk.id
         sem.token = tk.token
         sem.tipo = lastPop.tipo
-        lex.ids.append(sem)
+        #lex.ids.append(sem)
+        if sem.tipo == 'Nulo' or sem.tipo == '' :
+            sem.tipo = expression[-1].tipo
 
         pilha.top().lexema = sem.lexema
         outC.declarations += "\n" + semR.tabs + sem.tipo + " " + sem.lexema + ";"
         outC.body += "\n" + semR.tabs + sem.lexema + " = "
 
-        for id in lex.ids:
+        for id in expression_declarada:
             outC.body += id.lexema
         
         outC.body += ";"
         sem.inicializar()
         lastPop.inicializar()
+        del expression_declarada[:]
         del expression[:]
         return
         
@@ -497,6 +510,7 @@ def applySemanticRule(semR, lastPop, pilha, expression, lex, outC):
     elif semR.rule == 22:
         for id in lex.ids:
             if id.lexema == lastPop.lexema:
+                tipo_tem.append(id.tipo)
                 lastPop.tipo = id.tipo
                 found = True
                 return
@@ -505,7 +519,7 @@ def applySemanticRule(semR, lastPop, pilha, expression, lex, outC):
             semR.generate = False
             return
         
-        expression.append(lastPop)
+        expression.append(copy.deepcopy(lastPop))
         lastPop.inicializar()
         return
     # OPRD→ num    
@@ -515,11 +529,11 @@ def applySemanticRule(semR, lastPop, pilha, expression, lex, outC):
 
         for c in lastPop.lexema:
             if c == '.':
-                lastPop.tipo = "real"
-        if not lastPop.tipo :
+                lastPop.tipo = "double"
+        if lastPop.tipo == 'Nulo' :
             lastPop.tipo = "int"
         
-        expression.append(lastPop)
+        expression.append(copy.deepcopy(lastPop))
         return
     # A→ COND A
     elif semR.rule == 24:
@@ -531,7 +545,8 @@ def applySemanticRule(semR, lastPop, pilha, expression, lex, outC):
         return
     # CAB→ se (EXP_R) então
     elif semR.rule == 26:
-        outC.body += "\n" + semR.tabs + "if ( " + lastPop.lexema + " )\n" + semR.tabs + "{"
+        sem.lexema = "T" + str(semR.temporaryCounter)
+        outC.body += "\n" + semR.tabs + "if ( " + sem.lexema + " )\n" + semR.tabs + "{"
         semR.tabs += "\t"
         lastPop.inicializar()
         return
@@ -546,20 +561,24 @@ def applySemanticRule(semR, lastPop, pilha, expression, lex, outC):
                 print("Erro: Operandos com tipos incompatíveis")
                 semR.generate = False
                 return
-        sem.lexema = "T" + str(semR.temporaryCounter + 1)
+        semR.temporaryCounter = semR.temporaryCounter + 1
+        sem.lexema = "T" + str(semR.temporaryCounter)
         sem.token = tk.token
         sem.tipo = lastPop.tipo
-        lex.ids.append(sem)
+        if sem.tipo == 'Nulo' or sem.tipo == '' :
+            sem.tipo = expression[-1].tipo
+        #lex.ids.append(sem)
 
         pilha.top().lexema = sem.lexema
         outC.declarations += "\n\t" + sem.tipo + " " + sem.lexema + ";"
         outC.body +=  "\n" + semR.tabs + sem.lexema + " = "
-        for s in expression:    
+        for s in expression_declarada:    
             outC.body += s.lexema
         
         outC.body += ";"
         sem.inicializar()
         lastPop.inicializar()
+        del expression_declarada[:]
         del expression[:]
         return
     # CP→ ES CP ou CP→ CMD CP ou CP→ COND CP ou CP→ fimse ou A→ R A
@@ -656,20 +675,20 @@ def analisador_sintatico_antigo(lex):
             elif acao == 'a':
                 print('\n----- ACEITA -----\n')
 
-                if semRules.generate:
-                    outC.body += "\n}"
-                    print(" Arquivo .c gerado.")
-                    # Abre(ou cria) um arquivo .c com o nome do arquivo em mgol que está sendo analisado 
-                    arqDestino = open(str("out")+".c", "w+")
-                    # Imprime um elemento da lista TextoArquivo
-                    arqDestino.write( outC.header + outC.declarations + outC.body)
-                    # Fim do arquivo
-                    arqDestino.write("}\n")
-                    arqDestino.close()
-                    print("Arquivo " + "out" +  ".c gerado")
-                else:
-                    print(" Erros encontrados, Arquivo .c nao foi gerado.")
-                return
+                #if semRules.generate:
+                outC.body += "\n}"
+                print(" Arquivo .c gerado.")
+                # Abre(ou cria) um arquivo .c com o nome do arquivo em mgol que está sendo analisado 
+                arqDestino = open(str("out")+".c", "w+")
+                # Imprime um elemento da lista TextoArquivo
+                arqDestino.write( outC.header + outC.declarations + outC.body)
+                # Fim do arquivo
+                arqDestino.write("}\n")
+                arqDestino.close()
+                print("Arquivo " + "out" +  ".c gerado")
+                #else:
+                    #print(" Erros encontrados, Arquivo .c nao foi gerado.")
+                #return
             # erro
             elif acao == 'E':
                 faltSib={}
@@ -764,7 +783,10 @@ def analisador_sintatico(lex):
     lastLexeme = ""
     errorHandle = ""
     expression=[]
+    expression_declarada = []
     outC = OutC()
+    cont_expres = False
+    ids_declarados = []
     
     tok=scanner(lex)
 
@@ -793,7 +815,7 @@ def analisador_sintatico(lex):
             pilha.push(copy.deepcopy(sem))
 
             if  (sem.token == tokens.OPR or sem.token == tokens.OPM):
-                expression.append(sem)
+                expression.append(copy.deepcopy(sem))
             
             sem.inicializar()
             sem.estado = estado
@@ -802,6 +824,17 @@ def analisador_sintatico(lex):
 
             lastLexeme = tok.lexema
             tok = scanner(lex)
+            if tok.token == "id":
+                ids_declarados.append(tok)
+            
+            if lastLexeme == '(' or lastLexeme == '<-':
+                cont_expres = True
+            elif tok.lexema == ')' or tok.lexema == ';' :
+                cont_expres = False
+            
+            if cont_expres :
+                expression_declarada.append(tok)
+                
 
             while tok.linha < 0:
                 #fazer erro lexico
@@ -817,9 +850,12 @@ def analisador_sintatico(lex):
             # desempilha de acordo com a quantidade de produções
             for i in range(df_matriz_producoes['tamProd'][estado]):
                 if semRules.generate:
-                    lastPop.get(pilha.top())
+                    lastPop.get(copy.deepcopy(pilha.top()))
+                    
                 pilha.pop()
-            
+                if lastPop.tipo == '':
+                    lastPop.tipo = pilha.top().tipo
+
             estado = pilha.top().estado
 
             if pilha.top().estado == -1:
@@ -827,12 +863,12 @@ def analisador_sintatico(lex):
             else:
                 estado = pilha.top().estado
 
-            sem.inicializar()
-            sem.token = reduction
+            #sem.inicializar()
+            #sem.token = reduction
             pilha.push(copy.deepcopy(sem))
 
-            #if semRules.generate:
-                #applySemanticRule(semRules, lastPop, pilha, expression, lex, outC)
+            if semRules.generate:
+                applySemanticRule(semRules, lastPop, pilha, expression, lex, outC, ids_declarados, expression_declarada)
             
             aux_estado= df_tabela_sintatica[reduction][estado]
             estado_aux =  int(df_tabela_sintatica[reduction][estado][1:(len(aux_estado))])
@@ -845,19 +881,19 @@ def analisador_sintatico(lex):
         elif acao == 'a':
             print('\n----- ACEITA -----\n')
 
-            if semRules.generate:
-                outC.body += "\n}"
-                print(" Arquivo .c gerado.")
-                # Abre(ou cria) um arquivo .c com o nome do arquivo em mgol que está sendo analisado 
-                arqDestino = open(str("out")+".c", "w+")
-                # Imprime um elemento da lista TextoArquivo
-                arqDestino.write( outC.header + outC.declarations + outC.body)
-                # Fim do arquivo
-                arqDestino.write("}\n")
-                arqDestino.close()
-                print("Arquivo " + "out" +  ".c gerado")
-            else:
-                print(" Erros encontrados, Arquivo .c nao foi gerado.")
+            #if semRules.generate:
+            outC.body += "\n}"
+            print(" Arquivo .c gerado.")
+            # Abre(ou cria) um arquivo .c com o nome do arquivo em mgol que está sendo analisado 
+            arqDestino = open(str("out")+".c", "w+")
+            # Imprime um elemento da lista TextoArquivo
+            arqDestino.write( outC.header + outC.declarations + outC.body)
+            # Fim do arquivo
+            arqDestino.write("}\n")
+            arqDestino.close()
+            print("Arquivo " + "out" +  ".c gerado")
+            #else:
+                #print(" Erros encontrados, Arquivo .c nao foi gerado.")
             return
         # erro
         elif acao == 'E':
@@ -1113,11 +1149,11 @@ def scanner(lex):  # retorna o próximo token
                 _token = _lexema
                 # os tipos definidos pela linguagem são int, lit e real
                 if (_token == tokens.inteiro):
-                    tk.tipo = "inteiro"
+                    tk.tipo = "int"
                 elif (_token == tokens.lit):
                     tk.tipo = "literal"
                 elif (_token == tokens.real):
-                    tk.tipo = "real"
+                    tk.tipo = "double"
                 else:
                     tk.tipo = ""
 

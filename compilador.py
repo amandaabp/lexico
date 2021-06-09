@@ -628,14 +628,14 @@ def analisador_sintatico(lex):
                             faltSib.update({v: k})
                             nomeToken=lexico.eqToken(v)
                             impriLista=impriLista + " " + str(nomeToken)
-            print("\nErro Sintático.\nLinha: ", t.linha, "Coluna: ",
-                    t.coluna, "\n Faltando símbolo(s):", impriLista)
+            print("\nErro Sintático.\nLinha: ", tok.linha, "Coluna: ",
+                    tok.coluna, "\n Faltando símbolo(s):", impriLista)
 
             if len(faltSib) == 1:
                 print("\tTratamento de erro. Inserindo símbolo ausente...")
                 chave=[key for key in faltSib.keys()]
 
-                tAntigo=t
+                tAntigo=tok
 
                 a=chave[0]
 
@@ -655,8 +655,8 @@ def analisador_sintatico(lex):
 
                 while (aux):
                     while True:
-                        t=lexico.scanner(lex)
-                        a=t.token
+                        tok=lexico.scanner(lex)
+                        a=tok.token
 
                         if a == "$":
                             print("Fim de tratamento de erro\n")
@@ -683,14 +683,14 @@ def analisador_sintatico(lex):
 
                     print("Recuperando análise sintática\n")
     else:
-        print('Erro lexico' + t.erro)
+        print('Erro lexico' + tok.erro)
 
-        if t.erro.split == 'ERRO2' or t.erro.split == 'ERRO5':
+        if tok.erro.split == 'ERRO2' or tok.erro.split == 'ERRO5':
             print('Esperava argumento "num"'+'\n' +
-                'Linha : {} | Coluna : {}'.format(t.linha, t.coluna-2))
+                'Linha : {} | Coluna : {}'.format(tok.linha, tok.coluna-2))
 
-        t=lexico.scanner(lex)
-        a=t.token
+        tok=lexico.scanner(lex)
+        a=tok.token
 
 #função para interpretar alguns tokens
 def eqToken(token):    

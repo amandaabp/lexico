@@ -308,7 +308,7 @@ def applySemanticRule(semR, lastPop, pilha, expression, lex, outC, ids_declarado
     tk = Token()
     aux = ""
     sem = Semantic()
-    global regrasArg
+    global regrasArg 
     tipo_tem = []
 
     # P' → P ou P→ inicio V A ou V→ varincio LV ou LV→ D LV
@@ -416,7 +416,9 @@ def applySemanticRule(semR, lastPop, pilha, expression, lex, outC, ids_declarado
                 if len(id.tipo) != 0:
                     pilha.top().lexema = id.lexema
                     pilha.top().tipo = id.tipo
-                    lastPop.inicializar()
+                    lastPop.tipo = id.tipo
+                    #lastPop.inicializar()
+                    regrasArg = copy.deepcopy(lastPop)
 
         if not pilha.top().tipo or not found:
             print("ERRO! Variavel  nao definida!")

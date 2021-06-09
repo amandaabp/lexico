@@ -8,9 +8,9 @@ int D;
 double C;
 
 printf("\nB=\n");
-printf("\nB=\n");
+printf(D);
 printf("\n");
+printf(C);
 printf("\n");
-printf("\n");
-printf("\n");
+printf(A);
 }}

@@ -21,12 +21,13 @@ matriz_de_estados_finais = matrizes.matriz_de_estados_finais
 matriz_de_estados_lexica = matrizes.matriz_de_estados_lexica
 
 
-def aplicar_regra_semantica(semR, ultimo_pop, pilha, expression, lex, outC, ids_declarados, expression_declarada, found):
+def aplicar_regra_Semanticoa(semR, ultimo_pop, pilha, expressao, lex, programaC, ids_declarados, expressao_declarada):
     tk = classes.Token()
-    aux = ""
-    sem = classes.Semantic()
+    sem = classes.Semantico()
+    RED   = "\033[1;31m"
+    RESET = "\033[0;0m"
     global regrasArg
-    achou =  False
+    achou = False
 
     # P' → P ou P→ inicio V A ou V→ varincio LV ou LV→ D LV
     if semR.regra == 1 or semR.regra == 2 or semR.regra == 3 or semR.regra == 4:
@@ -34,7 +35,7 @@ def aplicar_regra_semantica(semR, ultimo_pop, pilha, expression, lex, outC, ids_
 
     # LV -> varfim;
     elif semR.regra == 5:
-        outC.corpo += "\n"
+        programaC.corpo += "\n\t"
 
     # D→ TIPO L;
     elif semR.regra == 6:
@@ -43,7 +44,6 @@ def aplicar_regra_semantica(semR, ultimo_pop, pilha, expression, lex, outC, ids_
                 sem.tipo = ultimo_pop.tipo
 
         pilha.top().tipo = ultimo_pop.tipo
-        # outC.declaracoes += "\n"+ semR.tabs + ultimo_pop.tipo + " " + ultimo_pop.lexema + ";"
         ultimo_pop.inicializar()
 
     # L→ id, L
@@ -53,7 +53,7 @@ def aplicar_regra_semantica(semR, ultimo_pop, pilha, expression, lex, outC, ids_
                 sem.tipo = ultimo_pop.tipo
 
         pilha.top().tipo = ultimo_pop.tipo
-        outC.declaracoes += "\n" + semR.tabs + " " + ultimo_pop.lexema + ";"
+        programaC.declaracoes += "\n\t" + semR.tabs + " " + ultimo_pop.lexema + ";"
         ultimo_pop.inicializar()
     # L→ id
     elif semR.regra == 8:
@@ -61,8 +61,8 @@ def aplicar_regra_semantica(semR, ultimo_pop, pilha, expression, lex, outC, ids_
             if id.lexema == ultimo_pop.lexema:
                 sem.tipo = ultimo_pop.tipo
 
-        pilha.top().tipo = ultimo_pop.tipo   
-        outC.declaracoes += "\n" + semR.tabs + \
+        pilha.top().tipo = ultimo_pop.tipo
+        programaC.declaracoes += "\n\t" + semR.tabs + \
             ultimo_pop.tipo + " " + ultimo_pop.lexema + ";"
         ultimo_pop.inicializar()
         return
@@ -83,15 +83,16 @@ def aplicar_regra_semantica(semR, ultimo_pop, pilha, expression, lex, outC, ids_
                 ultimo_pop.lexema = id.lexema
 
         if ultimo_pop.tipo == "literal":
-            outC.corpo += "\n" + semR.tabs+"scanf(\"%s\", "+ultimo_pop.lexema+");"
+            programaC.corpo += "\n\t" + semR.tabs + \
+                "scanf(\"%s\", "+ultimo_pop.lexema+");"
         elif ultimo_pop.tipo == "int":
-            outC.corpo += "\n" + semR.tabs + \
+            programaC.corpo += "\n\t" + semR.tabs + \
                 "scanf(\"%d\", &" + ultimo_pop.lexema + ");"
         elif ultimo_pop.tipo == "double":
-            outC.corpo += "\n" + semR.tabs + \
+            programaC.corpo += "\n\t" + semR.tabs + \
                 "scanf(\"%lf\", &" + ultimo_pop.lexema + ");"
         else:
-            print("ERRO! Variavel", ultimo_pop.lexema, " não declarada")
+            print(RED + "ERRO!"+ RESET +" Variavel", ultimo_pop.lexema, " não declarada")
 
         ultimo_pop.inicializar()
 
@@ -105,16 +106,17 @@ def aplicar_regra_semantica(semR, ultimo_pop, pilha, expression, lex, outC, ids_
 
         if ultimo_pop.tipo != 'Nulo' and ultimo_pop.tipo != '':
             if ultimo_pop.tipo == "literal":
-                outC.corpo += "\n" + semR.tabs + \
+                programaC.corpo += "\n\t" + semR.tabs + \
                     "printf(\"%s\", " + ultimo_pop.lexema + ");"
             elif ultimo_pop.tipo == "int":
-                outC.corpo += "\n" + semR.tabs + \
+                programaC.corpo += "\n\t" + semR.tabs + \
                     "printf(\"%d\", " + ultimo_pop.lexema + ");"
             elif ultimo_pop.tipo == "double":
-                outC.corpo += "\n" + semR.tabs + \
+                programaC.corpo += "\n\t" + semR.tabs + \
                     "printf(\"%lf\", " + ultimo_pop.lexema + ");"
         else:
-            outC.corpo += "\n" + semR.tabs + "printf(" + ultimo_pop.lexema + ");"
+            programaC.corpo += "\n\t" + semR.tabs + \
+                "printf(" + ultimo_pop.lexema + ");"
 
         ultimo_pop.inicializar()
 
@@ -134,11 +136,11 @@ def aplicar_regra_semantica(semR, ultimo_pop, pilha, expression, lex, outC, ids_
                     pilha.top().lexema = id.lexema
                     pilha.top().tipo = id.tipo
                     ultimo_pop.tipo = id.tipo
-                    #ultimo_pop.inicializar()
                     regrasArg = copy.deepcopy(ultimo_pop)
 
         if not pilha.top().tipo or not achou:
-            print("ERRO! Variavel  nao definida!")
+            print(RED + "ERRO!"+ RESET + "Variavel  nao definida!",
+                  "linha: ", tk.linha, "coluna: ", tk.coluna)
             semR.gerar = False
 
         return
@@ -155,30 +157,31 @@ def aplicar_regra_semantica(semR, ultimo_pop, pilha, expression, lex, outC, ids_
                     achou = True
 
         if achou:
-            print("ERRO! Variavel nao definida!")
-        elif not expression:
+            print(RED + "ERRO!"+ RESET +"Variavel nao definida!",
+                  tk.linha, "coluna: ", tk.coluna)
+        elif not expressao:
             if ultimo_pop.tipo != '':
                 for id in lex.ids:
                     if id.token == ultimo_pop.token and id.lexema == ultimo_pop.lexema:
                         ultimo_pop.tipo = id.tipo
-            if len(expression_declarada) != 0:
-                if ultimo_pop.tipo != expression_declarada[-1].tipo:
-                    print("ERRO! Variaveis ", ultimo_pop.lexema, " e ",
-                        expression[0].lexema, " de tipos diferentes!")
+            if len(expressao_declarada) != 0:
+                if ultimo_pop.tipo != expressao_declarada[-1].tipo:
+                    print(RED + "ERRO!"+ RESET +" Tipos diferentes para atribuição", ultimo_pop.lexema, " e ",
+                          expressao[0].lexema, "linha: ", tk.linha, "coluna: ", tk.coluna)
                     semR.gerar = False
 
-                outC.corpo += "\n" + semR.tabs + ultimo_pop.lexema + \
-                    " = " + expression_declarada[-1].lexema + ";"
-                del expression_declarada[:]
+                programaC.corpo += "\n\t" + semR.tabs + ultimo_pop.lexema + \
+                    " = " + expressao_declarada[-1].lexema + ";"
+                del expressao_declarada[:]
             else:
-                outC.corpo += "\n" + semR.tabs + ultimo_pop.lexema + \
-                " = " + "T" + str(semR.contador_temp) + ";"
+                programaC.corpo += "\n\t" + semR.tabs + ultimo_pop.lexema + \
+                    " = " + "T" + str(semR.contador_temp) + ";"
         else:
-            if len(expression_declarada) != 0:
-                outC.corpo += "\n" + semR.tabs + ultimo_pop.lexema + \
-                    " = " + expression_declarada[-1].lexema + ";"
+            if len(expressao_declarada) != 0:
+                programaC.corpo += "\n\t" + semR.tabs + ultimo_pop.lexema + \
+                    " = " + expressao_declarada[-1].lexema + ";"
             else:
-                outC.corpo += "\n" + semR.tabs + ultimo_pop.lexema + \
+                programaC.corpo += "\n\t" + semR.tabs + ultimo_pop.lexema + \
                     " = " + "T" + str(semR.contador_temp) + ";"
 
         ultimo_pop.inicializar()
@@ -187,38 +190,37 @@ def aplicar_regra_semantica(semR, ultimo_pop, pilha, expression, lex, outC, ids_
     # LD→ OPRD opm OPRD
     elif semR.regra == 20:
         for id in lex.ids:
-            if id.tipo != expression[0].tipo and not id.tipo:
-               print("ERRO! Variaveis de tipos diferentes dentro da expressao!")
-               semR.gerar = False
-               return
+            if id.tipo != expressao[0].tipo and not id.tipo:
+                print(RED + "ERRO!"+ RESET +" Variaveis de tipos diferentes dentro da expressao! \nlinha: ",
+                      tk.linha, "coluna: ", tk.coluna)
+                semR.gerar = False
+                return
             elif id.tipo == "lit":
                 print(
-                    "ERRO! Variaveis literais nao podem estar dentro de uma expressao!")
-                semR.gerar=False
+                    RED + "ERRO!"+ RESET +" Variaveis literais nao podem estar dentro de uma expressao! \nlinha: ", tk.linha, "coluna: ", tk.coluna)
+                semR.gerar = False
                 return
         semR.contador_temp = semR.contador_temp + 1
         sem.lexema = "T" + str(semR.contador_temp)
-        #sem.token = tk.id
         sem.token = tk.token
         sem.tipo = ultimo_pop.tipo
-        #lex.ids.append(sem)
-        if sem.tipo == 'Nulo' or sem.tipo == '' :
-            sem.tipo = expression[-1].tipo
+        if sem.tipo == 'Nulo' or sem.tipo == '':
+            sem.tipo = expressao[-1].tipo
 
         pilha.top().lexema = sem.lexema
-        outC.declaracoes += "\n" + semR.tabs + sem.tipo + " " + sem.lexema + ";"
-        outC.corpo += "\n" + semR.tabs + sem.lexema + " = "
+        programaC.declaracoesT += "\n\t" + semR.tabs + sem.tipo + " " + sem.lexema + ";"
+        programaC.corpo += "\n\t" + semR.tabs + sem.lexema + " = "
 
-        for id in expression_declarada:
-            outC.corpo += id.lexema
-        
-        outC.corpo += ";"
+        for id in expressao_declarada:
+            programaC.corpo += id.lexema
+
+        programaC.corpo += ";"
         sem.inicializar()
         ultimo_pop.inicializar()
-        del expression_declarada[:]
-        del expression[:]
+        del expressao_declarada[:]
+        del expressao[:]
         return
-        
+
     # LD→ OPRD
     elif semR.regra == 21:
         pilha.top().lexema = ultimo_pop.lexema
@@ -233,14 +235,15 @@ def aplicar_regra_semantica(semR, ultimo_pop, pilha, expression, lex, outC, ids_
                 achou = True
                 return
         if not achou:
-            print("Erro: Variável", ultimo_pop.lexema ,"não declarada" )
+            print(RED + "ERRO!"+ RESET +" Variável", ultimo_pop.lexema, "não declarada",
+                  "linha: ", tk.linha, "coluna: ", tk.coluna)
             semR.gerar = False
             return
-        
-        expression.append(copy.deepcopy(ultimo_pop))
+
+        expressao.append(copy.deepcopy(ultimo_pop))
         ultimo_pop.inicializar()
         return
-    # OPRD→ num    
+    # OPRD→ num
     elif semR.regra == 23:
         pilha.top().lexema = ultimo_pop.lexema
         pilha.top().tipo = ultimo_pop.tipo
@@ -248,10 +251,10 @@ def aplicar_regra_semantica(semR, ultimo_pop, pilha, expression, lex, outC, ids_
         for c in ultimo_pop.lexema:
             if c == '.':
                 ultimo_pop.tipo = "double"
-        if ultimo_pop.tipo == 'Nulo' :
+        if ultimo_pop.tipo == 'Nulo':
             ultimo_pop.tipo = "int"
-        
-        expression.append(copy.deepcopy(ultimo_pop))
+
+        expressao.append(copy.deepcopy(ultimo_pop))
         return
     # A→ COND A
     elif semR.regra == 24:
@@ -259,258 +262,78 @@ def aplicar_regra_semantica(semR, ultimo_pop, pilha, expression, lex, outC, ids_
     # COND→ CAB CP
     elif semR.regra == 25:
         semR.tabs = semR.tabs[0: len(semR.tabs) - 1]
-        outC.corpo += "\n" + semR.tabs + "}"
+        programaC.corpo += "\n\t" + semR.tabs + "}"
         return
     # CAB→ se (EXP_R) então
     elif semR.regra == 26:
         sem.lexema = "T" + str(semR.contador_temp)
-        outC.corpo += "\n" + semR.tabs + "if ( " + sem.lexema + " )\n" + semR.tabs + "{"
+        programaC.corpo += "\n\t" + semR.tabs + \
+            "if ( " + sem.lexema + " )\n\t" + semR.tabs + "{"
         semR.tabs += "\t"
         ultimo_pop.inicializar()
         return
     # EXP_R→ OPRD opr OPRD
     elif semR.regra == 27:
         for id in lex.ids:
-            if id.tipo != expression[0].tipo and not id.tipo:
-                print("Erro: Operandos com tipos incompatíveis")
+            if id.tipo != expressao[0].tipo and not id.tipo:
+                print(RED + "ERRO!"+ RESET +" Operandos com tipos incompatíveis \nlinha: ",
+                      tk.linha, "coluna: ", tk.coluna)
                 semR.gerar = False
                 return
             elif id.tipo == "lit":
-                print("Erro: Operandos com tipos incompatíveis")
+                print(RED + "ERRO!"+ RESET +" Operandos com tipos incompatíveis \nlinha: ",
+                      tk.linha, "coluna: ", tk.coluna)
                 semR.gerar = False
                 return
         semR.contador_temp = semR.contador_temp + 1
         sem.lexema = "T" + str(semR.contador_temp)
         sem.token = tk.token
         sem.tipo = ultimo_pop.tipo
-        if sem.tipo == 'Nulo' or sem.tipo == '' :
-            sem.tipo = expression[-1].tipo
-        #lex.ids.append(sem)
+        if sem.tipo == 'Nulo' or sem.tipo == '':
+            sem.tipo = expressao[-1].tipo
 
         pilha.top().lexema = sem.lexema
-        outC.declaracoes += "\n\t" + sem.tipo + " " + sem.lexema + ";"
-        outC.corpo +=  "\n" + semR.tabs + sem.lexema + " = "
-        for s in expression_declarada:    
-            outC.corpo += s.lexema
-        
-        outC.corpo += ";"
+        programaC.declaracoesT += "\n\t" + sem.tipo + " " + sem.lexema + ";"
+        programaC.corpo += "\n\t" + semR.tabs + sem.lexema + " = "
+        for s in expressao_declarada:
+            programaC.corpo += s.lexema
+
+        programaC.corpo += ";"
         sem.inicializar()
         ultimo_pop.inicializar()
-        del expression_declarada[:]
-        del expression[:]
+        del expressao_declarada[:]
+        del expressao[:]
         return
     # CP→ ES CP ou CP→ CMD CP ou CP→ COND CP ou CP→ fimse ou A→ R A
-    elif semR.regra == 28 or semR.regra == 29 or semR.regra == 30 or semR.regra == 31  or semR.regra == 32:
+    elif semR.regra == 28 or semR.regra == 29 or semR.regra == 30 or semR.regra == 31 or semR.regra == 32:
         return
     # R → facaAte (EXP_R) CP_R
     elif semR.regra == 33:
         return
 
-def analisador_sintatico_antigo(lex):
-    erroSint=False
-    lexico.ler_arquivo_mgol(lex)
-    t=lexico.scanner(lex)
-    a=t.token
-    tAntigo=t
-    print('\nAnalisador sintático\n')
-    ultimo_pop= classes.Semantic()
-    sem= classes.Semantic()
-    semregras= classes.Semanticregras()
-    expression=[]
-    outC= classes.OutC
-
-    while(1):
-        if a != '':
-            # topo da pilha
-            s=pilha.items[len(pilha.items)-1]
-
-            # busca acao na tabela sintatica
-            estado_aux=df_tabela_sintatica[a][s]
-            aux=df_tabela_sintatica[a][s][1:(len(estado_aux))]
-            acao=df_tabela_sintatica[a][s][0]
-
-            if acao == 's' or acao == 'r' or acao == 'E':
-                linhaEstado=int(aux)
-
-            # empilhar
-            if acao == 's':
-                sem.inicializar()
-                sem.get(t)
-                pilha.push(t)
-                pilha.push(linhaEstado)
-
-                if (sem.token == tokens.OPR or sem.token == tokens.OPM):
-                    expression.append(sem)
-
-                if erroSint:
-                    t=tAntigo
-                    erroSint=False
-                else:
-                    t=lexico.scanner(lex)
-
-                a=t.token
-
-                while t.linha < 0:
-                    # parseLexicalError(lex, tok, tokens);
-                    semregras.gerar=False
-
-            # reduzir
-            elif acao == 'r':
-                # produção gerada
-                aux2=df_matriz_producoes['Nonterminal'][linhaEstado]
-                linhaProd=linhaEstado
-                semregras.regra=linhaEstado + 1
-
-                print('Regra: ', df_matriz_producoes['Nonterminal'][linhaProd],
-                      '->', df_matriz_producoes['producoes'][linhaProd])
-
-                # desempilha de acordo com a quantidade de produções
-                for i in range(df_matriz_producoes['tamProd'][linhaEstado]):
-                    pilha.pop()
-                    if semregras.gerar:
-                        ultimo_pop.get(pilha.top())
-                    pilha.pop()
-
-                linhaEstado=pilha.items[len(pilha.items)-1]
-
-                #sem.inicializar()
-
-                pilha.push(t)
-                aux_estado=df_tabela_sintatica[aux2][linhaEstado]
-
-                if semregras.gerar:
-                    aplicar_regra_semantica(semregras, ultimo_pop,
-                                      pilha, expression, lex, outC)
-
-                sem.inicializar()
-                pilha.push(
-                    int(df_tabela_sintatica[aux2][linhaEstado][1:(len(aux_estado))]))
-
-
-
-
-            # aceita
-            elif acao == 'a':
-                print('\n----- ACEITA -----\n')
-
-                #if semregras.gerar:
-                outC.corpo += "\n}"
-                print(" Arquivo .c gerado.")
-                # Abre(ou cria) um arquivo .c com o nome do arquivo em mgol que está sendo analisado 
-                arqDestino = open(str("out")+".c", "w+")
-                # Imprime um elemento da lista TextoArquivo
-                arqDestino.write( outC.cabecalho + outC.declaracoes + outC.corpo)
-                # Fim do arquivo
-                arqDestino.write("}\n")
-                arqDestino.close()
-                print("Arquivo " + "out" +  ".c gerado")
-                #else:
-                    #print(" Erros encontrados, Arquivo .c nao foi gerado.")
-                #return
-            # erro
-            elif acao == 'E':
-                faltSib={}
-                impriLista=""
-
-                linhas=df_tabela_sintatica.values[s]
-                colunas=df_tabela_sintatica.columns
-
-                for k, v in zip(linhas, colunas):
-                    if v != 'estado':
-                        if k != '0' and k != 0:
-                            if k[0] != 'E':
-                                faltSib.update({v: k})
-                                nomeToken=eqToken(v)
-                                impriLista=impriLista + " " + str(nomeToken)
-                print("\nErro Sintático.\nLinha: ", t.linha, "Coluna: ",
-                      t.coluna, "\n Faltando símbolo(s):", impriLista)
-
-                if len(faltSib) == 1:
-                    print("\tTratamento de erro. Inserindo símbolo ausente...")
-                    chave=[key for key in faltSib.keys()]
-
-                    tAntigo=t
-
-                    a=chave[0]
-
-                    erroSint=True
-
-                    pilha.pop()
-                    pilha.pop()
-                    pilha.push(chave[0])
-                    pilha.push(int(aux))
-
-                    print("\nInserindo para continuar a análise.")
-                    print("\nFim de tratamento de erro\n")
-                else:
-                    print("\nTratamento de erro.")
-                    listaFollow=df_matriz_follow['FOLLOW'][int(s)-1]
-                    aux=1
-
-                    while (aux):
-                        while True:
-                            t=lexico.scanner(lex)
-                            a=t.token
-
-                            if a == "$":
-                                print("Fim de tratamento de erro\n")
-                                print("Finalizada. Falha!")
-                                return
-
-                            elif a != "comentario":
-                                break
-
-                        if listaFollow == '0':
-                            print("A análise não conseguiu se recuperar do erro: ")
-                            break
-                        else:
-                            for token in listaFollow.split():
-                                if token == a:
-                                    aux=0
-                                    break
-
-                        x=df_matriz_producoes['tamProd'][int(s)]
-                        if x:
-                            for i in range(0, int(x)):
-                                pilha.pop()
-                                pilha.pop()
-
-                        print("Recuperando análise sintática\n")
-        else:
-            print('Erro lexico' + t.erro)
-
-            if t.erro.split == 'ERRO2' or t.erro.split == 'ERRO5':
-                print('Esperava argumento "num"'+'\n' +
-                    'Linha : {} | Coluna : {}'.format(t.linha, t.coluna-2))
-
-            t=lexico.scanner(lex)
-            a=t.token
 
 def analisador_sintatico(lex):
-    erroSint=False
+    erroSint = False
     lexico.ler_arquivo_mgol(lex)
     tok = classes.Token()
-    sem = classes.Semantic()
-    ultimo_pop = classes.Semantic()
+    sem = classes.Semantico()
+    ultimo_pop = classes.Semantico()
     semregras = classes.RegrasSemanticas()
     pilha = classes.Stack()  # pilha para auxiliar na analise Sintática
-    pilha.push(0)
-    i = 0
     estado = -1
-    estadoAux = -1
     lastLexeme = ""
-    errorHandle = ""
-    expression=[]
-    outC = classes.OutC()
-    expression_declarada = []
+    expressao = []
+    programaC = classes.programaC()
+    expressao_declarada = []
     cont_expres = False
     ids_declarados = []
-    found = False
-    tok=lexico.scanner(lex)
+    RED   = "\033[1;31m"
+    RESET = "\033[0;0m"
+    tok = lexico.scanner(lex)
 
     if tok.linha < 0 and not tok.token:
-        print("ERRO - linha", tok.linha, " - ", tok.token)
-    
+        print(RED + "ERRO!"+ RESET +"- linha", tok.linha, " - ", tok.token)
+
     pilha.push(copy.deepcopy(sem))
 
     while(1):
@@ -520,56 +343,59 @@ def analisador_sintatico(lex):
             s = pilha.top().estado
 
         # busca acao na tabela sintatica
-        aux=df_tabela_sintatica[tok.token][s]
-        estado_aux= df_tabela_sintatica[tok.token][s][1:(len(aux))]
-        acao=df_tabela_sintatica[tok.token][s][0]
+        aux = df_tabela_sintatica[tok.token][s]
+        estado_aux = df_tabela_sintatica[tok.token][s][1:(len(aux))]
+        acao = df_tabela_sintatica[tok.token][s][0]
 
         if acao == 's' or acao == 'r' or acao == 'E':
-            estado= int(estado_aux)
+            estado = int(estado_aux)
 
         if (acao == "s"):
             sem.inicializar()
             sem.get(tok)
             pilha.push(copy.deepcopy(sem))
 
-            if  (sem.token == tokens.OPR or sem.token == tokens.OPM):
-                expression.append(copy.deepcopy(sem))
-            
+            if (sem.token == tokens.OPR or sem.token == tokens.OPM):
+                expressao.append(copy.deepcopy(sem))
+
             sem.inicializar()
             sem.estado = estado
             pilha.top().estado = estado
-            #pilha.push(copy.deepcopy(sem))
 
             lastLexeme = tok.lexema
-            tok = lexico.scanner(lex)
+
+            if erroSint:
+                tok = tAntigo
+                erroSint = False
+            else:
+                tok = lexico.scanner(lex)
+
             if tok.token == "id":
                 ids_declarados.append(tok)
-            
+
             if lastLexeme == '(' or lastLexeme == '<-':
                 cont_expres = True
-            elif tok.lexema == ')' or tok.lexema == ';' :
+            elif tok.lexema == ')' or tok.lexema == ';':
                 cont_expres = False
-            
-            if cont_expres :
-                expression_declarada.append(tok)
-                
+
+            if cont_expres:
+                expressao_declarada.append(tok)
 
             while tok.linha < 0:
-                #fazer erro lexico
                 semregras.gerar = False
 
         elif (acao == "r"):
             reduction = df_matriz_producoes['Nonterminal'][estado]
-            semregras.regra= estado + 1
+            semregras.regra = estado + 1
 
             print('Regra: ', df_matriz_producoes['Nonterminal'][estado],
-                    '->', df_matriz_producoes['producoes'][estado])
+                  '->', df_matriz_producoes['producoes'][estado])
 
             # desempilha de acordo com a quantidade de produções
             for i in range(df_matriz_producoes['tamProd'][estado]):
                 if semregras.gerar:
                     ultimo_pop.get(copy.deepcopy(pilha.top()))
-                    
+
                 pilha.pop()
                 if ultimo_pop.tipo == '':
                     ultimo_pop.tipo = pilha.top().tipo
@@ -581,65 +407,64 @@ def analisador_sintatico(lex):
             else:
                 estado = pilha.top().estado
 
-            #sem.inicializar()
-            #sem.token = reduction
             pilha.push(copy.deepcopy(sem))
 
             if semregras.gerar:
-                aplicar_regra_semantica(semregras, ultimo_pop, pilha, expression, lex, outC, ids_declarados, expression_declarada, found)
-            
-            aux_estado= df_tabela_sintatica[reduction][estado]
-            estado_aux =  int(df_tabela_sintatica[reduction][estado][1:(len(aux_estado))])
+                aplicar_regra_Semanticoa(
+                    semregras, ultimo_pop, pilha, expressao, lex, programaC, ids_declarados, expressao_declarada)
+
+            aux_estado = df_tabela_sintatica[reduction][estado]
+            estado_aux = int(
+                df_tabela_sintatica[reduction][estado][1:(len(aux_estado))])
             sem.inicializar()
             sem.estado = estado_aux
             pilha.top().estado = estado_aux
-
 
         # aceita
         elif acao == 'a':
             print('\n----- ACEITA -----\n')
 
-            #if semregras.gerar:
-            outC.corpo += "\n}"
-            print(" Arquivo .c gerado.")
-            # Abre(ou cria) um arquivo .c com o nome do arquivo em mgol que está sendo analisado 
-            arqDestino = open(str("out")+".c", "w+")
-            # Imprime um elemento da lista TextoArquivo
-            arqDestino.write( outC.cabecalho + outC.declaracoes + outC.corpo)
-            # Fim do arquivo
-            arqDestino.write("}\n")
-            arqDestino.close()
-            print("Arquivo " + "out" +  ".c gerado")
-            #else:
-                #print(" Erros encontrados, Arquivo .c nao foi gerado.")
+            if semregras.gerar:
+                programaC.corpo += "\n}"
+                # Abre(ou cria) um arquivo .c com o nome do arquivo em mgol que está sendo analisado
+                arqDestino = open(str("programa")+".c", "w+")
+                # Imprime um elemento da lista TextoArquivo
+                arqDestino.write(programaC.cabecalho + programaC.declaracoesT + programaC.declaracaoa_finalT +
+                                 programaC.declaracoes + programaC.corpo)
+                # Fim do arquivo
+                arqDestino.write("\n")
+                arqDestino.close()
+                print("Arquivo " + "programa" + ".c gerado")
+            else:
+                print("\033[0;30;41mErros encontrados, Arquivo programa.c não foi gerado.\033[m")
             return
         # erro
         elif acao == 'E':
-            faltSib={}
-            impriLista=""
+            faltSib = {}
+            impriLista = ""
 
-            linhas=df_tabela_sintatica.values[s]
-            colunas=df_tabela_sintatica.columns
+            linhas = df_tabela_sintatica.values[s]
+            colunas = df_tabela_sintatica.columns
 
             for k, v in zip(linhas, colunas):
                 if v != 'estado':
                     if k != '0' and k != 0:
                         if k[0] != 'E':
                             faltSib.update({v: k})
-                            nomeToken=lexico.eqToken(v)
-                            impriLista=impriLista + " " + str(nomeToken)
-            print("\nErro Sintático.\nLinha: ", tok.linha, "Coluna: ",
-                    tok.coluna, "\n Faltando símbolo(s):", impriLista)
+                            nomeToken = lexico.eqToken(v)
+                            impriLista = impriLista + " " + str(nomeToken)
+            print(RED + "ERRO Sintático!"+ RESET +"\nLinha: ", tok.linha, "Coluna: ",
+                  tok.coluna, "\n Faltando símbolo(s):", impriLista)
 
             if len(faltSib) == 1:
                 print("\tTratamento de erro. Inserindo símbolo ausente...")
-                chave=[key for key in faltSib.keys()]
+                chave = [key for key in faltSib.keys()]
 
-                tAntigo=tok
+                tAntigo = tok
 
-                a=chave[0]
+                a = chave[0]
 
-                erroSint=True
+                erroSint = True
 
                 pilha.pop()
                 pilha.pop()
@@ -650,13 +475,13 @@ def analisador_sintatico(lex):
                 print("\nFim de tratamento de erro\n")
             else:
                 print("\nTratamento de erro.")
-                listaFollow=df_matriz_follow['FOLLOW'][int(s)-1]
-                aux=1
+                listaFollow = df_matriz_follow['FOLLOW'][int(s)-1]
+                aux = 1
 
                 while (aux):
                     while True:
-                        tok=lexico.scanner(lex)
-                        a=tok.token
+                        tok = lexico.scanner(lex)
+                        a = tok.token
 
                         if a == "$":
                             print("Fim de tratamento de erro\n")
@@ -672,10 +497,10 @@ def analisador_sintatico(lex):
                     else:
                         for token in listaFollow.split():
                             if token == a:
-                                aux=0
+                                aux = 0
                                 break
 
-                    x=df_matriz_producoes['tamProd'][int(s)]
+                    x = df_matriz_producoes['tamProd'][int(s)]
                     if x:
                         for i in range(0, int(x)):
                             pilha.pop()
@@ -683,17 +508,19 @@ def analisador_sintatico(lex):
 
                     print("Recuperando análise sintática\n")
     else:
-        print('Erro lexico' + tok.erro)
+        print(RED + "ERRO lexico!"+ RESET + tok.erro)
 
         if tok.erro.split == 'ERRO2' or tok.erro.split == 'ERRO5':
             print('Esperava argumento "num"'+'\n' +
-                'Linha : {} | Coluna : {}'.format(tok.linha, tok.coluna-2))
+                  'Linha : {} | Coluna : {}'.format(tok.linha, tok.coluna-2))
 
-        tok=lexico.scanner(lex)
-        a=tok.token
+        tok = lexico.scanner(lex)
+        a = tok.token
 
-#função para interpretar alguns tokens
-def eqToken(token):    
+# função para interpretar alguns tokens
+
+
+def eqToken(token):
     tokenTrad = token
     if token == "OPM":
         return tokenTrad + " - Operador Matemático"
@@ -702,7 +529,7 @@ def eqToken(token):
     if token == "id":
         return tokenTrad + " - identificador"
     if token == "num":
-        return tokenTrad + " - número" 
+        return tokenTrad + " - número"
     if token == "RCB":
         return tokenTrad + " - Atribuição"
     if token == "AB_P":
@@ -715,6 +542,7 @@ def eqToken(token):
         return tokenTrad + " - Vírgula - ,"
     else:
         return token
+
 
 # Main(Principal)
 lex = classes.Lex()

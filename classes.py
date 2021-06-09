@@ -18,8 +18,8 @@ class Token:
     erro = ""
     estado = -1
 
-class Semantic:
-    def Semantic(self):
+class Semantico:
+    def Semantico(self):
         self.estado = -1
         self.lexema = ""
         self.token = ""
@@ -72,8 +72,8 @@ class Stack:
          return len(self.items)
 
 
-class Semanticn:
-    def Semantic(self):
+class Semantico:
+    def Semantico(self):
         self.estado = -1
         self.lexeme = ""
         self.token = ""
@@ -116,13 +116,16 @@ class RegrasSemanticas:
     gerar = True
     tabs = ""
 
-class OutC:
-    def OutC(self):
+class programaC:
+    def programaC(self):
         cabecalho = "#include<stdio.h>\ntypedef char literal[256];\nvoid main(void)\n{"
         corpo = ""
         declaracoes = ""
+        declaracoesT = ""
     cabecalho =  "#include<stdio.h>\ntypedef char literal[256];\nvoid main(void)\n{"
     declaracoes = ""
+    declaracoesT = "\n\t"+"/*----Variaveis temporarias----*/"
+    declaracaoa_finalT = "\n\t/*------------------------------*/"
     corpo = ""
 
 class Lista_de_tokens:

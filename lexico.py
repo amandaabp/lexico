@@ -153,7 +153,7 @@ def erro(lex,t, tk, estado_atual, estado_novo, ini_lexema, fim_lexema):
 
 def scanner(lex):  # retorna o próximo token
     tk=classes.Token()
-    snt=classes.Semantic()
+    snt=classes.Semantico()
     estado_atual=-1  # o estado inicial é -1
     estado_novo=-1
     # ini_lexema e fim_lexema marcam as posições de início e o fim de cada lexema
